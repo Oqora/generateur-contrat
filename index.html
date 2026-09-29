@@ -101,11 +101,11 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
         <label><input type="radio" name="offre" value="2"><span>Offre 2<small>on appelle</small></span></label>
       </div></div>
 
-    <div class="q"><div class="lab">Taille du centre</div>
+    <div class="q"><div class="lab">CA mensuel du centre</div>
       <div class="choix">
-        <label><input type="radio" name="taille" value="petit" checked><span>Petit<small id="px-petit"></small></span></label>
-        <label><input type="radio" name="taille" value="moyen"><span>Moyen<small id="px-moyen"></small></span></label>
-        <label><input type="radio" name="taille" value="grand"><span>Grand<small id="px-grand"></small></span></label>
+        <label><input type="radio" name="taille" value="petit" checked><span>5 à 10 k€<small id="px-petit"></small></span></label>
+        <label><input type="radio" name="taille" value="moyen"><span>10 à 30 k€<small id="px-moyen"></small></span></label>
+        <label><input type="radio" name="taille" value="grand"><span>+ 30 k€<small id="px-grand"></small></span></label>
       </div>
       <div class="aide" id="pub"></div></div>
 
@@ -118,7 +118,7 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
       </div></div>
 
     <div class="q"><label for="prix">Prix mensuel HT (€)</label><input type="number" id="prix" min="0" step="50">
-      <div class="aide">Rempli d'après la grille. Modifiable.</div></div>
+      <div class="aide">Rempli d'après la grille et le CA actuel. Modifiable.</div></div>
 
     <div class="q"><div class="lab">Objectif de CA mensuel</div>
       <div class="duo"><input type="number" id="caActuel" min="0" step="100" placeholder="CA actuel (€)">
@@ -160,11 +160,20 @@ function majPrix() {
   var o = val("offre"), t = val("taille");
   ["petit", "moyen", "grand"].forEach(function (k) { $("px-" + k).textContent = euros(GRILLE[k][o]); });
   $("prix").value = GRILLE[t][o];
-  $("pub").textContent = "Pub conseillée : " + GRILLE[t].pub + " €/jour, payée par elle à Meta.";
+  var ca = parseFloat($("caActuel").value);
+  $("pub").textContent = (ca > 0 && ca < 5000 ? "Sous le minimum de 5 000 €/mois : on ne prend pas ce centre. " : "") + "Pub conseillée : " + GRILLE[t].pub + " €/jour, payée par elle à Meta.";
 }
 function majObjectif() {
   var ca = parseFloat($("caActuel").value);
   if (ca > 0) $("objectif").value = Math.round(ca * parseInt(val("mult"), 10));
+}
+// La tranche de prix suit le CA actuel : 5-10 k€, 10-30 k€, plus de 30 k€ (décision du 28/09)
+function majTranche() {
+  var ca = parseFloat($("caActuel").value);
+  if (!(ca > 0)) return;
+  var t = ca >= 30000 ? "grand" : ca >= 10000 ? "moyen" : "petit";
+  document.querySelector('input[name="taille"][value="' + t + '"]').checked = true;
+  majPrix();
 }
 
 function rendre() {
@@ -205,12 +214,12 @@ function rendre() {
     "<h3>Support 7j/7</h3><p>Le Prestataire fournira un support continu 7 jours sur 7.</p>" +
     "<h3>Live-Coaching</h3><p>Des sessions de coaching en direct seront organisées, se décomposant comme suit :</p>" +
     "<ul><li>1 visio toutes les deux semaines pour le support Sales, Offre et Réseaux sociaux</li>" +
-    "<li><b>1 de 1-1 personnalisé de 30 minutes tous les 7 jours avec Jules Couapel et ce, durant toute la période de l'accompagnement</b></li></ul>" +
+    "<li><b>1 point individuel de 30 minutes tous les 7 jours avec Jules Couapel, et ce durant toute la période de l'accompagnement</b></li></ul>" +
     setter +
     "<h3>Acquisition</h3><p>Le Prestataire gérera les publicités, la page de réservation et le CRM du Client.</p>" +
-    "<h3>Tournage</h3><p>Un tournage tous les trois mois dans le centre du Client et 30 vidéos par mois pour ses réseaux sociaux.</p>" +
+    "<h3>Tournage</h3><p>Un tournage tous les 4 mois dans le centre du Client et 30 vidéos pour ses réseaux sociaux.</p>" +
     "<h3>Offre</h3><p>La restructuration, avec le Client, de sa séance découverte, de ses cures et de ses prix.</p>" +
-    "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document, des scripts, des modèles de messages, le guide du CRM et les replays des coachings.</p>" +
+    "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu), des scripts et les replays des coachings.</p>" +
     "<h3>Modules d'Accompagnement</h3>" +
     "<p><b>1. Introduction</b></p><ul><li>Introduction et explication de la méthode Oqora©</li><li>Fixer la vision de votre centre©</li></ul>" +
     "<p><b>2. Offre</b></p><ul><li>Comment créer une séance découverte à laquelle il sera impossible de dire non©</li><li>Comment construire des cures haut de gamme©</li><li>Pourquoi et comment augmenter vos prix ?©</li></ul>" +
@@ -249,12 +258,12 @@ function rendre() {
     "<ul><li>Suspendre l'exécution de ses obligations</li><li>Suspendre ou annuler la fourniture des services</li><li>Résilier le contrat</li></ul><p>Sans que le Client puisse prétendre à une quelconque indemnité.</p>" +
     "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
 
-    '<p style="text-align:center;margin-top:36pt">Fait en deux exemplaires originaux<br><br>à Paris, le ' + dateTxt + "</p>" +
-    '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>_______________________</div>' +
-    "<div>Pour le Client<br><b>" + champ(gerante, "[Nom]") + "</b><br>" + (centre ? esc(centre) : "") + "<br><br>Signature :<br>_______________________</div></div>" +
     '<div class="brk annexe"><h2>Annexe 1 : Objectif de la garantie</h2>' +
     '<p>L\'objectif est atteint si le chiffre d\'affaires réalisé avec les nouvelles clientes apportées par le Prestataire, additionné sur les ' + evalMois + ' mois de la période d\'évaluation, est au moins égal au total hors taxes des sommes versées par le Client au Prestataire sur la même période, soit ' + champ(prix ? euros(prix * evalMois) : "", "[__] €") + ".</p>" +
-    '<p>Le budget publicitaire payé par le Client à Meta n\'entre pas dans ce calcul.</p></div>';
+    '<p>Le budget publicitaire payé par le Client à Meta n\'entre pas dans ce calcul.</p></div>' +
+    '<p style="text-align:center;margin-top:36pt">Fait en deux exemplaires originaux<br><br>à Paris, le ' + dateTxt + "</p>" +
+    '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>_______________________</div>' +
+    "<div>Pour le Client<br><b>" + champ(gerante, "[Nom]") + "</b><br>" + (centre ? esc(centre) : "") + "<br><br>Signature :<br>_______________________</div></div>";
 
 }
 
@@ -269,7 +278,7 @@ function manquants() {
 
 document.querySelectorAll('input[name="offre"], input[name="taille"]').forEach(function (e) { e.addEventListener("change", function () { majPrix(); rendre(); }); });
 document.querySelectorAll('input[name="mult"]').forEach(function (e) { e.addEventListener("change", function () { majObjectif(); rendre(); }); });
-$("caActuel").addEventListener("input", function () { majObjectif(); rendre(); });
+$("caActuel").addEventListener("input", function () { majObjectif(); majTranche(); rendre(); });
 $("quiz").addEventListener("input", rendre);
 $("quiz").addEventListener("change", rendre);
 // Téléchargement : dans la page publiée, via la capacité « downloads » ; en fichier local, par le navigateur.
