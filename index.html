@@ -69,7 +69,6 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 .contrat .pay .t { font-weight:bold; margin-bottom:4pt; }
 .contrat .box { text-align:center; font-weight:bold; margin:12pt 30pt; }
 .contrat .brk { page-break-before:always; }
-.contrat .annexe h2 { margin-top:0; }
 .contrat h3, .contrat li, .contrat .pay, .contrat .box, .contrat .sign { page-break-inside:avoid; }
 .contrat .sign { display:flex; justify-content:space-between; margin-top:40pt; text-align:center; page-break-inside:avoid; }
 .contrat .sign div { width:45%; }
@@ -258,9 +257,6 @@ function rendre() {
     "<ul><li>Suspendre l'exécution de ses obligations</li><li>Suspendre ou annuler la fourniture des services</li><li>Résilier le contrat</li></ul><p>Sans que le Client puisse prétendre à une quelconque indemnité.</p>" +
     "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
 
-    '<div class="brk annexe"><h2>Annexe 1 : Objectif de la garantie</h2>' +
-    '<p>L\'objectif est atteint si le chiffre d\'affaires réalisé avec les nouvelles clientes apportées par le Prestataire, additionné sur les ' + evalMois + ' mois de la période d\'évaluation, est au moins égal au total hors taxes des sommes versées par le Client au Prestataire sur la même période, soit ' + champ(prix ? euros(prix * evalMois) : "", "[__] €") + ".</p>" +
-    '<p>Le budget publicitaire payé par le Client à Meta n\'entre pas dans ce calcul.</p></div>' +
     '<p style="text-align:center;margin-top:36pt">Fait en deux exemplaires originaux<br><br>à Paris, le ' + dateTxt + "</p>" +
     '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>_______________________</div>' +
     "<div>Pour le Client<br><b>" + champ(gerante, "[Nom]") + "</b><br>" + (centre ? esc(centre) : "") + "<br><br>Signature :<br>_______________________</div></div>";
