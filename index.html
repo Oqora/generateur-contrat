@@ -96,8 +96,8 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 
     <div class="q"><div class="lab">Offre</div>
       <div class="choix">
-        <label><input type="radio" name="offre" value="1" checked><span>Offre 1<small>elle appelle</small></span></label>
-        <label><input type="radio" name="offre" value="2"><span>Offre 2<small>on appelle</small></span></label>
+        <label><input type="radio" name="offre" value="1"><span>Offre 1<small>elle appelle</small></span></label>
+        <label><input type="radio" name="offre" value="2" checked><span>Offre 2<small>on appelle</small></span></label>
       </div></div>
 
     <div class="q"><div class="lab">CA mensuel du centre</div>
@@ -110,14 +110,26 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 
     <div class="q"><div class="lab">Durée</div>
       <div class="choix">
-        <label><input type="radio" name="duree" value="3"><span>3 mois</span></label>
-        <label><input type="radio" name="duree" value="4" checked><span>4 mois</span></label>
+        <label><input type="radio" name="duree" value="3" checked><span>3 mois</span></label>
+        <label><input type="radio" name="duree" value="4"><span>4 mois</span></label>
         <label><input type="radio" name="duree" value="6"><span>6 mois</span></label>
         <label><input type="radio" name="duree" value="12"><span>1 an</span></label>
       </div></div>
 
     <div class="q"><label for="prix">Prix mensuel HT (€)</label><input type="number" id="prix" min="0" step="50">
       <div class="aide">Rempli d'après la grille et le CA actuel. Modifiable.</div></div>
+
+    <div class="q"><div class="lab">Paiement</div>
+      <div class="choix">
+        <label><input type="radio" name="paiement" value="une" checked><span>En une fois</span></label>
+        <label><input type="radio" name="paiement" value="plusieurs"><span>En plusieurs fois</span></label>
+        <label><input type="radio" name="paiement" value="mois"><span>Chaque mois</span></label>
+      </div>
+      <div class="choix" id="nbFoisBloc" style="margin-top:8px" hidden>
+        <label><input type="radio" name="nbFois" value="2" checked><span>2 fois</span></label>
+        <label><input type="radio" name="nbFois" value="3"><span>3 fois</span></label>
+      </div>
+      <div class="aide" id="totalAide"></div></div>
 
     <div class="q"><div class="lab">Objectif de CA mensuel</div>
       <div class="duo"><input type="number" id="caActuel" min="0" step="100" placeholder="CA actuel (€)">
@@ -175,6 +187,25 @@ function majTranche() {
   majPrix();
 }
 
+// Mode de paiement : en une fois, en 2 ou 3 fois, ou chaque mois. Le total = prix mensuel × durée, sans remise (Jules, 03/10).
+function blocPaiement(prix, d) {
+  var mode = val("paiement"), p = parseFloat(prix), total = p > 0 ? p * d : 0;
+  var tot = champ(total ? euros(total) : "", "[__] €");
+  if (mode === "mois") {
+    return '<div class="pay"><div class="t">PAIEMENT MENSUEL</div><div><b>' + champ(prix ? euros(prix) : "", "[__] €") + " HT par mois</b></div><div>Paiement mensuel sur une période de " + d + " mois</div></div>";
+  }
+  if (mode === "plusieurs") {
+    var n = parseInt(val("nbFois"), 10), part = total ? Math.round(total / n * 100) / 100 : 0;
+    return '<div class="pay"><div class="t">PAIEMENT EN ' + n + " FOIS</div><div><b>" + n + " paiements de " + champ(part ? euros(part) : "", "[__] €") + " HT</b></div><div>Soit " + tot + " HT pour une période de " + d + " mois</div></div>";
+  }
+  return '<div class="pay"><div class="t">PAIEMENT EN UNE FOIS</div><div><b>' + tot + " HT</b></div><div>Paiement en une fois pour une période de " + d + " mois</div></div>";
+}
+function majPaiement() {
+  $("nbFoisBloc").hidden = val("paiement") !== "plusieurs";
+  var p = parseFloat($("prix").value), d = parseInt(val("duree"), 10);
+  $("totalAide").textContent = p > 0 ? "Total : " + euros(p * d) + " HT sur " + d + " mois (même prix qu'au mois)." : "";
+}
+
 function rendre() {
   var o = val("offre"), d = parseInt(val("duree"), 10);
   var evalMois = Math.min(4, d);
@@ -187,7 +218,7 @@ function rendre() {
   var client = [champ(centre, "[Nom du centre]"), adresse ? esc(adresse) : "", champ(gerante, "[Nom de la gérante]")].filter(Boolean).join(", ");
 
   var setter = o === "2"
-    ? "<h3>Appointment Setter Dédié</h3><p><b>Un appointment setter dédié au rappel des demandes du Client.</b></p>"
+    ? "<h3>Opératrice Dédiée</h3><p><b>Une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme.</b></p>"
     : "";
   var condRappel = o === "1" ? "<li>Le Client a rappelé toutes ses demandes chaque jour, sans exception</li>" : "";
 
@@ -211,23 +242,14 @@ function rendre() {
 
     '<h2 class="brk">Article 3 : Services fournis</h2>' +
     "<h3>Support 7j/7</h3><p>Le Prestataire fournira un support continu 7 jours sur 7.</p>" +
-    "<h3>Live-Coaching</h3><p>Des sessions de coaching en direct seront organisées, se décomposant comme suit :</p>" +
-    "<ul><li>1 visio toutes les deux semaines pour le support Sales, Offre et Réseaux sociaux</li>" +
-    "<li><b>1 point individuel de 30 minutes tous les 7 jours avec Jules Couapel, et ce durant toute la période de l'accompagnement</b></li></ul>" +
     setter +
-    "<h3>Acquisition</h3><p>Le Prestataire gérera les publicités, la page de réservation et le CRM du Client.</p>" +
-    "<h3>Tournage</h3><p>Un tournage tous les 4 mois dans le centre du Client et 30 vidéos pour ses réseaux sociaux.</p>" +
-    "<h3>Offre</h3><p>La restructuration, avec le Client, de sa séance découverte, de ses cures et de ses prix.</p>" +
-    "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu), des scripts et les replays des coachings.</p>" +
-    "<h3>Modules d'Accompagnement</h3>" +
-    "<p><b>1. Introduction</b></p><ul><li>Introduction et explication de la méthode Oqora©</li><li>Fixer la vision de votre centre©</li></ul>" +
-    "<p><b>2. Offre</b></p><ul><li>Comment créer une séance découverte à laquelle il sera impossible de dire non©</li><li>Comment construire des cures haut de gamme©</li><li>Pourquoi et comment augmenter vos prix ?©</li></ul>" +
-    "<p><b>3. Acquisition</b></p><ul><li>CRM Mastery©</li><li>Réseaux Sociaux Mastery©</li><li>Comment ne plus perdre une seule demande ?©</li><li>Comment faire chuter vos absences ?©</li><li>Comment faire revenir vos anciennes clientes ?©</li></ul>" +
-    "<p><b>4. Vente</b></p><ul><li>Séance Découverte Mastery©</li><li>Comment transformer chaque séance découverte en cure ?©</li></ul>" +
+    "<h3>Acquisition</h3><p>Le Prestataire assurera :</p><ul><li>la création de la stratégie ads (contenus, positionnement, campagnes) ;</li><li>la création des publicités et des créas ;</li><li>la création et la gestion des campagnes publicitaires Meta ;</li><li>la gestion journalière des budgets Meta ;</li><li>l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;</li><li>la création d'une landing page pour récupérer les informations des prospects ;</li><li>la mise en place du formulaire et des outils CRM de gestion des leads ;</li><li>la mise en place d'un outil de suivi des performances en direct.</li></ul>" +
+    "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>" +
+    "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu) et des scripts.</p>" +
 
     '<h2 class="brk">Article 4 : Modalités de paiement</h2>' +
     "<p>Le Client reconnaît et accepte l'obligation légale de procéder au paiement des services fournis par le Prestataire selon les modalités suivantes :</p>" +
-    '<div class="pay"><div class="t">PAIEMENT MENSUEL</div><div><b>' + champ(prix ? euros(prix) : "", "[__] €") + " HT par mois</b></div><div>Paiement mensuel sur une période de " + d + " mois</div></div>" +
+    blocPaiement(prix, d) +
     "<p>Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.</p>" +
     "<p>Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
 
@@ -236,19 +258,19 @@ function rendre() {
     "<h3>5.2 Période d'Évaluation</h3><p>Au terme d'une période de " + LETTRES[evalMois] + " (" + evalMois + ") mois à compter de la date d'effet du présent contrat, le Prestataire et le Client évalueront conjointement les performances réalisées.</p>" +
     "<h3>5.3 Bonne Foi et Collaboration</h3><p>Le Client reconnaît que le Prestataire n'a pas l'intention de tendre des pièges délibérés ni d'annuler le contrat en cas d'erreur du Client. Les erreurs sont considérées comme des opportunités d'apprentissage et de correction mutuelle. Pour éviter tout malentendu, les Parties conviennent de travailler de bonne foi pour résoudre les erreurs et garantir le succès de la stratégie, dans le respect des termes du contrat initial.</p>" +
     "<h3>5.4 Non-Réalisation des Objectifs</h3><p>Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :</p>" +
-    '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à l\'investissement initial du Client dans Oqora, et le Client recevra un versement de 1 000€ pour le temps perdu</p>' +
+    '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à deux fois (×2) l\'investissement initial du Client dans Oqora (hors budget publicitaire)</p>' +
     "<h3>5.5 Modalités de Mise en Œuvre</h3><p>Les modalités précises de mise en œuvre de cette garantie, notamment la définition des objectifs, la mesure de la performance et le calcul du retour sur investissement, sont détaillées dans l'Annexe 1.</p>" +
     "<h3>5.6 Conditions et exclusions</h3><p>La garantie ne s'applique que si le Client a respecté toutes les conditions suivantes. Si une seule condition n'est pas respectée, la garantie est annulée :</p>" +
-    "<ul><li>Le Client a participé à toutes les séances de coaching (visios et points individuels)</li><li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li><li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora</li>" + condRappel + "</ul>" +
+    "<ul><li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li><li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours</li>" + condRappel + "</ul>" +
     "<p>Cette garantie ne s'appliquera pas non plus dans les situations où les manquements à la réalisation des objectifs sont imputables à :</p>" +
-    "<ul><li>Des circonstances indépendantes de la volonté du Prestataire</li><li>Des actes du Client</li><li>Des catastrophes naturelles</li><li>Des actes de tiers</li><li>Toute autre circonstance échappant au contrôle raisonnable du Prestataire</li></ul>" +
+    "<ul><li>Des circonstances indépendantes de la volonté du Prestataire</li><li>Des actes du Client</li><li>Des catastrophes naturelles</li><li>Des actes de tiers</li><li>Des décisions des plateformes publicitaires et des réseaux sociaux, notamment Meta (restriction, suspension ou blocage d'un compte, refus d'une publicité, changement de leurs règles ou de leur fonctionnement)</li><li>Toute autre circonstance échappant au contrôle raisonnable du Prestataire</li></ul>" +
 
     '<h2 class="brk">Article 6 : Confidentialité et propriété intellectuelle</h2>' +
     "<p>Le Client s'engage à ne pas partager, vendre ou commercialiser les ressources fournies par le Prestataire dans le cadre de ce contrat. Ces ressources sont des informations privées qui appartiennent à \"Oqora\" et doivent être conservées pour l'usage exclusif du Client.</p>" +
     "<h2>Article 7 : Loi applicable et juridiction</h2><p>Ce contrat est soumis aux lois françaises et à la juridiction des tribunaux de Paris.</p>" +
     "<h2>Article 8 : Onboarding</h2>" +
     "<h3>8.1 Document d'Onboarding</h3><p>Une fois le paiement réalisé, le Client recevra un document d'onboarding de la part du Prestataire.</p>" +
-    "<h3>8.2 Durée de l'Onboarding</h3><p>La phase d'onboarding durera 1 jour maximum à compter de la réception du document d'onboarding.</p>" +
+    "<h3>8.2 Durée de l'Onboarding</h3><p>La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client.</p>" +
     "<h3>8.3 Accès à l'Espace Client</h3><p>Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera l'accompagnement selon les termes de ce contrat.</p>" +
     "<h2>Article 9 : Pénalités de retard</h2>" +
     "<h3>9.1 Déclenchement des Pénalités</h3><p>Toute somme non payée à son échéance donnera lieu au paiement par le Client de pénalités de retard, sans qu'un rappel soit nécessaire.</p>" +
@@ -275,8 +297,8 @@ function manquants() {
 document.querySelectorAll('input[name="offre"], input[name="taille"]').forEach(function (e) { e.addEventListener("change", function () { majPrix(); rendre(); }); });
 document.querySelectorAll('input[name="mult"]').forEach(function (e) { e.addEventListener("change", function () { majObjectif(); rendre(); }); });
 $("caActuel").addEventListener("input", function () { majObjectif(); majTranche(); rendre(); });
-$("quiz").addEventListener("input", rendre);
-$("quiz").addEventListener("change", rendre);
+$("quiz").addEventListener("input", function () { majPaiement(); rendre(); });
+$("quiz").addEventListener("change", function () { majPaiement(); rendre(); });
 // Téléchargement : dans la page publiée, via la capacité « downloads » ; en fichier local, par le navigateur.
 var dlPromesse = (window.claude && typeof window.claude.use === "function") ? window.claude.use("downloads") : Promise.resolve(null);
 function etat(msg, type) { var e = $("etat"); e.textContent = msg; e.className = "etat" + (type ? " " + type : ""); }
@@ -322,5 +344,6 @@ $("pdf").addEventListener("click", async function () {
 });
 
 majPrix();
+majPaiement();
 rendre();
 </script>
