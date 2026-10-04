@@ -29,7 +29,7 @@ body { margin:0; background:var(--fond); color:var(--texte); font-family:-apple-
 .quiz h1 { font-size:18px; margin:0; color:var(--accent); text-wrap:balance; }
 .quiz .sous { font-size:13px; color:var(--gris); margin:-10px 0 0; }
 .q > label, .q > .lab { display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--gris); margin-bottom:6px; }
-input[type=text], input[type=number] { width:100%; padding:10px 12px; border:1px solid var(--bord); border-radius:8px; font-size:15px; font-family:inherit; background:var(--surface); color:var(--texte); font-variant-numeric:tabular-nums; }
+input[type=text], input[type=number], input[type=email] { width:100%; padding:10px 12px; border:1px solid var(--bord); border-radius:8px; font-size:15px; font-family:inherit; background:var(--surface); color:var(--texte); font-variant-numeric:tabular-nums; }
 input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
 .duo { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .choix { display:flex; gap:6px; flex-wrap:wrap; }
@@ -93,6 +93,8 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
     <div class="q"><div class="lab">Gérante</div>
       <div class="duo"><input type="text" id="prenom" placeholder="Prénom"><input type="text" id="nom" placeholder="Nom"></div></div>
     <div class="q"><label for="adresse">Adresse du centre</label><input type="text" id="adresse"></div>
+    <div class="q"><label for="email">E-mail de la gérante</label><input type="email" id="email" placeholder="Pour l'envoi du contrat à signer">
+      <div class="aide">Le contrat lui est envoyé à cette adresse. C'est sa fiche dans le CRM qui est créée ou mise à jour.</div></div>
 
     <div class="q"><div class="lab">Offre</div>
       <div class="choix">
@@ -142,9 +144,14 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 
 
     <div>
-      <button type="button" class="btn" id="pdf">Télécharger le PDF</button>
+      <button type="button" class="btn" id="signer">Envoyer pour signature</button>
+      <div class="etat" id="etatSigner" role="status"></div>
+      <div class="aide">Elle reçoit le contrat par e-mail pendant l'appel et le signe en ligne. La date et sa signature se posent là. Le contrat signé se retrouve dans le CRM, Paiements › Certificats et contrats.</div>
+    </div>
+    <div>
+      <button type="button" class="btn" id="pdf" style="background:var(--accent-doux);color:var(--texte)">Télécharger le PDF</button>
       <div class="etat" id="etat" role="status"></div>
-      <div class="aide">Envoie ensuite le PDF avec ton outil de signature électronique : la date et la signature se posent là-bas.</div>
+      <div class="aide">Pour garder une copie, ou l'envoyer autrement.</div>
     </div>
   </form>
 
@@ -188,17 +195,21 @@ function majTranche() {
 }
 
 // Mode de paiement : en une fois, en 2 ou 3 fois, ou chaque mois. Le total = prix mensuel × durée, sans remise (Jules, 03/10).
-function blocPaiement(prix, d) {
+// Les trois lignes du bloc paiement, en texte brut (servent au contrat affiché ET à l'envoi vers le CRM)
+function paiementTexte(prix, d) {
   var mode = val("paiement"), p = parseFloat(prix), total = p > 0 ? p * d : 0;
-  var tot = champ(total ? euros(total) : "", "[__] €");
-  if (mode === "mois") {
-    return '<div class="pay"><div class="t">PAIEMENT MENSUEL</div><div><b>' + champ(prix ? euros(prix) : "", "[__] €") + " HT par mois</b></div><div>Paiement mensuel sur une période de " + d + " mois</div></div>";
-  }
+  var tot = total ? euros(total) : "[__] €";
+  if (mode === "mois") return { titre: "PAIEMENT MENSUEL", montant: (prix ? euros(prix) : "[__] €") + " HT par mois", detail: "Paiement mensuel sur une période de " + d + " mois" };
   if (mode === "plusieurs") {
     var n = parseInt(val("nbFois"), 10), part = total ? Math.round(total / n * 100) / 100 : 0;
-    return '<div class="pay"><div class="t">PAIEMENT EN ' + n + " FOIS</div><div><b>" + n + " paiements de " + champ(part ? euros(part) : "", "[__] €") + " HT</b></div><div>Soit " + tot + " HT pour une période de " + d + " mois</div></div>";
+    return { titre: "PAIEMENT EN " + n + " FOIS", montant: n + " paiements de " + (part ? euros(part) : "[__] €") + " HT", detail: "Soit " + tot + " HT pour une période de " + d + " mois" };
   }
-  return '<div class="pay"><div class="t">PAIEMENT EN UNE FOIS</div><div><b>' + tot + " HT</b></div><div>Paiement en une fois pour une période de " + d + " mois</div></div>";
+  return { titre: "PAIEMENT EN UNE FOIS", montant: tot + " HT", detail: "Paiement en une fois pour une période de " + d + " mois" };
+}
+function blocPaiement(prix, d) {
+  var t = paiementTexte(prix, d);
+  var m = t.montant.replace("[__] €", '<span class="vide">[__] €</span>');
+  return '<div class="pay"><div class="t">' + t.titre + "</div><div><b>" + m + "</b></div><div>" + t.detail.replace("[__] €", '<span class="vide">[__] €</span>') + "</div></div>";
 }
 function majPaiement() {
   $("nbFoisBloc").hidden = val("paiement") !== "plusieurs";
@@ -341,6 +352,40 @@ $("pdf").addEventListener("click", async function () {
   } finally {
     el.classList.remove("export"); btn.disabled = false;
   }
+});
+
+// Envoi pour signature : les données partent au CRM (workflow « Contrat : envoi pour signature »),
+// qui crée ou met à jour la fiche de la gérante et lui envoie le modèle « Contrat Oqora » par e-mail.
+var WEBHOOK = "https://services.leadconnectorhq.com/hooks/jmUms8s51Jw4OuPsmVLt/webhook-trigger/a6be0eb0-b60d-439a-bd2f-9ae7bab4474e";
+function donneesContrat() {
+  var o = val("offre"), d = parseInt(val("duree"), 10), evalMois = Math.min(4, d);
+  var t = paiementTexte($("prix").value, d);
+  return {
+    email: $("email").value.trim(), prenom: $("prenom").value.trim(), nom: $("nom").value.trim(),
+    centre: $("centre").value.trim(), adresse: $("adresse").value.trim(),
+    offre: "Offre " + o, duree: String(d),
+    ca_actuel: $("caActuel").value ? euros($("caActuel").value) : "", objectif_ca: $("objectif").value ? euros($("objectif").value) : "",
+    prix_mensuel: $("prix").value ? euros($("prix").value) : "",
+    paiement_titre: t.titre, paiement_montant: t.montant, paiement_detail: t.detail,
+    operatrice: o === "2" ? "Opératrice Dédiée : une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme." : "",
+    condition_offre_1: o === "1" ? "Offre 1 : le Client a rappelé toutes ses demandes chaque jour, sans exception." : "",
+    periode_evaluation: LETTRES[evalMois] + " (" + evalMois + ")"
+  };
+}
+function etatSigner(msg, type) { var e = $("etatSigner"); e.textContent = msg; e.className = "etat" + (type ? " " + type : ""); }
+$("signer").addEventListener("click", async function () {
+  var m = manquants();
+  if (!$("adresse").value.trim()) m.push("adresse du centre");
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($("email").value.trim())) m.push("e-mail de la gérante");
+  if (m.length) { etatSigner("Il manque : " + m.join(", ") + ".", "erreur"); return; }
+  var btn = this; btn.disabled = true; etatSigner("Envoi en cours…");
+  try {
+    var r = await fetch(WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(donneesContrat()) });
+    if (!r.ok) throw new Error(r.status);
+    etatSigner("Contrat envoyé à " + $("email").value.trim() + ". Elle le reçoit par e-mail dans la minute.", "ok");
+  } catch (err) {
+    etatSigner("L'envoi n'a pas marché. Vérifie la connexion et réessaie.", "erreur");
+  } finally { btn.disabled = false; }
 });
 
 majPrix();
