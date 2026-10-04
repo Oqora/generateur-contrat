@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Ouverture de votre contrat…</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:#f3f5f9;color:#161a24;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;padding:24px}p{font-size:17px}a{color:#2b3a8f}</style>
+</head><body><div><p>Ouverture de votre contrat…</p><p id="m"></p></div>
+<script>
+// Reçoit ?u=<lien GHL> et l'ouvre en français : GHL envoie ses liens de signature avec locale=en-US (aucun réglage),
+// et la page de signature suit ce paramètre. On le remplace par fr-FR avant de rediriger.
+(function () {
+  var q = location.search; var i = q.indexOf('u=');
+  if (i < 0) { document.getElementById('m').textContent = "Lien incomplet. Ouvrez le lien depuis l'e-mail reçu."; return; }
+  var u = q.slice(i + 2);
+  if (/^https?%3A/i.test(u)) { try { u = decodeURIComponent(u); } catch (e) {} }
+  if (!/^https:\/\/(www\.)?sendlink\.co\//.test(u) && !/leadconnectorhq\.com/.test(u)) { document.getElementById('m').innerHTML = 'Lien non reconnu.'; return; }
+  if (/[?&]locale=/.test(u)) u = u.replace(/([?&])locale=[^&]*/, '$1locale=fr-FR'); else u += (u.indexOf('?') < 0 ? '?' : '&') + 'locale=fr-FR';
+  document.getElementById('m').innerHTML = 'Si rien ne se passe, <a href="' + u.replace(/"/g, '&quot;') + '">cliquez ici</a>.';
+  location.replace(u);
+})();
+</script></body></html>
