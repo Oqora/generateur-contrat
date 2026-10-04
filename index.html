@@ -369,7 +369,9 @@ function donneesContrat() {
     paiement_titre: t.titre, paiement_montant: t.montant, paiement_detail: t.detail,
     operatrice: o === "2" ? "Opératrice Dédiée : une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme." : "",
     condition_offre_1: o === "1" ? "Offre 1 : le Client a rappelé toutes ses demandes chaque jour, sans exception." : "",
-    periode_evaluation: LETTRES[evalMois] + " (" + evalMois + ")"
+    periode_evaluation: LETTRES[evalMois] + " (" + evalMois + ")",
+    // date du jour de l'envoi = jour de l'appel ; elle s'écrit dans « Fait à Paris, le … » du modèle GHL
+    date_contrat: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
   };
 }
 function etatSigner(msg, type) { var e = $("etatSigner"); e.textContent = msg; e.className = "etat" + (type ? " " + type : ""); }
