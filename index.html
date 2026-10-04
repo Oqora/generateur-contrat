@@ -373,7 +373,16 @@ function donneesContrat() {
   };
 }
 function etatSigner(msg, type) { var e = $("etatSigner"); e.textContent = msg; e.className = "etat" + (type ? " " + type : ""); }
+// Dans la page artifact de Claude, les envois vers d'autres sites sont interdits (règle de sécurité du viewer) :
+// on remplace le bouton par un lien vers la version GitHub, qui envoie.
+var LIEN_GITHUB = "https://oqora.github.io/generateur-contrat/";
+if (window.claude) {
+  $("signer").textContent = "Ouvrir la version qui envoie";
+  $("signer").addEventListener("click", function () { window.open(LIEN_GITHUB, "_blank"); });
+  etatSigner("Depuis cette page, l'envoi est bloqué. Pour envoyer le contrat en appel, utilise " + LIEN_GITHUB);
+}
 $("signer").addEventListener("click", async function () {
+  if (window.claude) return;
   var m = manquants();
   if (!$("adresse").value.trim()) m.push("adresse du centre");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($("email").value.trim())) m.push("e-mail de la gérante");
