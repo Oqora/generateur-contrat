@@ -224,7 +224,13 @@ function paiementTexte(prix, d) {
   if (mode === "mois") return { titre: "PAIEMENT MENSUEL", montant: (prix ? euros(prix) : "[__] €") + " HT par mois", detail: "Paiement mensuel sur une période de " + d + " mois" };
   if (mode === "plusieurs") {
     var n = parseInt(val("nbFois"), 10), part = total ? Math.round(total / n * 100) / 100 : 0;
-    return { titre: "PAIEMENT EN " + n + " FOIS", montant: n + " paiements de " + (part ? euros(part) : "[__] €") + " HT", detail: "Soit " + tot + " HT pour une période de " + d + " mois" };
+    // En 2 fois : le 2e paiement tombe 15 jours après le jour de l'envoi (= jour de l'appel), date calculée toute seule (Jules, 16/10)
+    var dates = "";
+    if (n === 2) {
+      var j15 = new Date(); j15.setDate(j15.getDate() + 15);
+      dates = "1er paiement à la signature, 2e paiement le " + j15.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) + ", soit ";
+    }
+    return { titre: "PAIEMENT EN " + n + " FOIS", montant: n + " paiements de " + (part ? euros(part) : "[__] €") + " HT", detail: (dates || "Soit ") + tot + " HT pour une période de " + d + " mois" };
   }
   return { titre: "PAIEMENT EN UNE FOIS", montant: tot + " HT", detail: "Paiement en une fois pour une période de " + d + " mois" };
 }
