@@ -129,7 +129,7 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
         <label><input type="radio" name="garantie" value="avec" checked><span>Avec garantie</span></label>
         <label><input type="radio" name="garantie" value="sans"><span>Sans garantie</span></label>
       </div>
-      <div class="aide">Sans garantie : l'article sur la garantie est retiré du contrat.</div></div>
+      <div class="aide">Sans garantie : les points 5.4 à 5.6 sont retirés du contrat.</div></div>
 
     <div class="q"><label for="prix">Prix mensuel HT (€)</label><input type="number" id="prix" min="0" step="50">
       <div class="aide">Rempli d'après la grille et le CA actuel. Modifiable.</div></div>
@@ -190,7 +190,7 @@ function duree() {
   return n > 0 ? n : 1;
 }
 // Garantie : ×2 en temps normal ; sur un contrat d'1 mois, un retour sur investissement (×1) seulement (Jules, 16/10)
-// « Sans garantie » (bouton) : l'article 5 disparaît et les articles suivants sont renumérotés (Jules, 16/10)
+// « Sans garantie » (bouton) : 5.4 à 5.6 disparaissent, 5.1 à 5.3 restent (Jules, 16/10)
 function texteGarantie(d) { return val("garantie") === "sans" ? "Sans garantie" : d === 1 ? "une fois (×1)" : "deux fois (×2)"; }
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 function euros(n) { return Number(n).toLocaleString("fr-FR").replace(/ /g, " ") + "€"; }
@@ -243,7 +243,6 @@ function majPaiement() {
 function rendre() {
   var o = val("offre"), d = duree();
   var avecGarantie = val("garantie") !== "sans";
-  function A(k) { return avecGarantie || k < 5 ? k : k - 1; }
   var evalMois = Math.min(4, d);
   var gerante = [$("prenom").value.trim(), $("nom").value.trim()].filter(Boolean).join(" ");
   var centre = $("centre").value.trim(), adresse = $("adresse").value.trim();
@@ -287,13 +286,13 @@ function rendre() {
     "<p>Le Client reconnaît et accepte l'obligation légale de procéder au paiement des services fournis par le Prestataire selon les modalités suivantes :</p>" +
     blocPaiement(prix, d) +
     "<p>Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.</p>" +
-    "<p>Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article " + A(9) + " de ce contrat.</p>" +
+    "<p>Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
 
-    (avecGarantie ? "<h2>Article 5 : Garantie de résultat</h2>" +
+    "<h2>Article 5 : Garantie de résultat</h2>" +
     "<h3>5.1 Engagement</h3><p>Le Prestataire s'engage à fournir ses services de manière à atteindre les résultats ou objectifs définis conjointement avec le Client dans l'Annexe 1.</p>" +
     "<h3>5.2 Période d'Évaluation</h3><p>Au terme d'une période de " + LETTRES[evalMois] + " (" + evalMois + ") mois à compter de la date d'effet du présent contrat, le Prestataire et le Client évalueront conjointement les performances réalisées.</p>" +
     "<h3>5.3 Bonne Foi et Collaboration</h3><p>Le Client reconnaît que le Prestataire n'a pas l'intention de tendre des pièges délibérés ni d'annuler le contrat en cas d'erreur du Client. Les erreurs sont considérées comme des opportunités d'apprentissage et de correction mutuelle. Pour éviter tout malentendu, les Parties conviennent de travailler de bonne foi pour résoudre les erreurs et garantir le succès de la stratégie, dans le respect des termes du contrat initial.</p>" +
-    "<h3>5.4 Non-Réalisation des Objectifs</h3><p>Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :</p>" +
+    (avecGarantie ? "<h3>5.4 Non-Réalisation des Objectifs</h3><p>Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :</p>" +
     '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à ' + texteGarantie(d) + ' l\'investissement initial du Client dans Oqora (hors budget publicitaire)</p>' +
     "<h3>5.5 Modalités de Mise en Œuvre</h3><p>Les modalités précises de mise en œuvre de cette garantie, notamment la définition des objectifs, la mesure de la performance et le calcul du retour sur investissement, sont détaillées dans l'Annexe 1.</p>" +
     "<h3>5.6 Conditions et exclusions</h3><p>La garantie ne s'applique que si le Client a respecté toutes les conditions suivantes. Si une seule condition n'est pas respectée, la garantie est annulée :</p>" +
@@ -301,19 +300,19 @@ function rendre() {
     "<p>Cette garantie ne s'appliquera pas non plus dans les situations où les manquements à la réalisation des objectifs sont imputables à :</p>" +
     "<ul><li>Des circonstances indépendantes de la volonté du Prestataire</li><li>Des actes du Client</li><li>Des catastrophes naturelles</li><li>Des actes de tiers</li><li>Des décisions des plateformes publicitaires et des réseaux sociaux, notamment Meta (restriction, suspension ou blocage d'un compte, refus d'une publicité, changement de leurs règles ou de leur fonctionnement)</li><li>Toute autre circonstance échappant au contrôle raisonnable du Prestataire</li></ul>" : "") +
 
-    '<h2 class="brk">Article ' + A(6) + ' : Confidentialité et propriété intellectuelle</h2>' +
+    '<h2 class="brk">Article 6 : Confidentialité et propriété intellectuelle</h2>' +
     "<p>Le Client s'engage à ne pas partager, vendre ou commercialiser les ressources fournies par le Prestataire dans le cadre de ce contrat. Ces ressources sont des informations privées qui appartiennent à \"Oqora\" et doivent être conservées pour l'usage exclusif du Client.</p>" +
-    "<h2>Article " + A(7) + " : Loi applicable et juridiction</h2><p>Ce contrat est soumis aux lois françaises et à la juridiction des tribunaux de Paris.</p>" +
-    "<h2>Article " + A(8) + " : Onboarding</h2>" +
-    "<h3>" + A(8) + ".1 Document d'Onboarding</h3><p>Une fois le paiement réalisé, le Client recevra un document d'onboarding de la part du Prestataire.</p>" +
-    "<h3>" + A(8) + ".2 Durée de l'Onboarding</h3><p>La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client.</p>" +
-    "<h3>" + A(8) + ".3 Accès à l'Espace Client</h3><p>Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera l'accompagnement selon les termes de ce contrat.</p>" +
-    "<h2>Article " + A(9) + " : Pénalités de retard</h2>" +
-    "<h3>" + A(9) + ".1 Déclenchement des Pénalités</h3><p>Toute somme non payée à son échéance donnera lieu au paiement par le Client de pénalités de retard, sans qu'un rappel soit nécessaire.</p>" +
-    "<h3>" + A(9) + ".2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de 500€, sauf justification de frais supérieurs.</p>" +
-    "<h3>" + A(9) + ".3 Conséquences sur les Services</h3><p>En cas de retard de paiement de plus de 10 jours, le Prestataire se réserve le droit de :</p>" +
+    "<h2>Article 7 : Loi applicable et juridiction</h2><p>Ce contrat est soumis aux lois françaises et à la juridiction des tribunaux de Paris.</p>" +
+    "<h2>Article 8 : Onboarding</h2>" +
+    "<h3>8.1 Document d'Onboarding</h3><p>Une fois le paiement réalisé, le Client recevra un document d'onboarding de la part du Prestataire.</p>" +
+    "<h3>8.2 Durée de l'Onboarding</h3><p>La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client.</p>" +
+    "<h3>8.3 Accès à l'Espace Client</h3><p>Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera l'accompagnement selon les termes de ce contrat.</p>" +
+    "<h2>Article 9 : Pénalités de retard</h2>" +
+    "<h3>9.1 Déclenchement des Pénalités</h3><p>Toute somme non payée à son échéance donnera lieu au paiement par le Client de pénalités de retard, sans qu'un rappel soit nécessaire.</p>" +
+    "<h3>9.2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de 500€, sauf justification de frais supérieurs.</p>" +
+    "<h3>9.3 Conséquences sur les Services</h3><p>En cas de retard de paiement de plus de 10 jours, le Prestataire se réserve le droit de :</p>" +
     "<ul><li>Suspendre l'exécution de ses obligations</li><li>Suspendre ou annuler la fourniture des services</li><li>Résilier le contrat</li></ul><p>Sans que le Client puisse prétendre à une quelconque indemnité.</p>" +
-    "<h3>" + A(9) + ".4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
+    "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
 
     '<p style="text-align:center;margin-top:36pt">Fait en deux exemplaires originaux<br><br>à Paris, le ' + dateTxt + "</p>" +
     '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>_______________________</div>' +
