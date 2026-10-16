@@ -182,6 +182,8 @@ function duree() {
   var n = parseInt($("dureeAutre").value, 10);
   return n > 0 ? n : 1;
 }
+// Garantie : ×2 en temps normal ; sur un contrat d'1 mois, un retour sur investissement (×1) seulement (Jules, 16/10)
+function garantie(d) { return d === 1 ? "une fois (×1)" : "deux fois (×2)"; }
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 function euros(n) { return Number(n).toLocaleString("fr-FR").replace(/ /g, " ") + "€"; }
 function champ(v, repli) { return v ? esc(v) : '<span class="vide">' + repli + "</span>"; }
@@ -282,7 +284,7 @@ function rendre() {
     "<h3>5.2 Période d'Évaluation</h3><p>Au terme d'une période de " + LETTRES[evalMois] + " (" + evalMois + ") mois à compter de la date d'effet du présent contrat, le Prestataire et le Client évalueront conjointement les performances réalisées.</p>" +
     "<h3>5.3 Bonne Foi et Collaboration</h3><p>Le Client reconnaît que le Prestataire n'a pas l'intention de tendre des pièges délibérés ni d'annuler le contrat en cas d'erreur du Client. Les erreurs sont considérées comme des opportunités d'apprentissage et de correction mutuelle. Pour éviter tout malentendu, les Parties conviennent de travailler de bonne foi pour résoudre les erreurs et garantir le succès de la stratégie, dans le respect des termes du contrat initial.</p>" +
     "<h3>5.4 Non-Réalisation des Objectifs</h3><p>Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :</p>" +
-    '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à deux fois (×2) l\'investissement initial du Client dans Oqora (hors budget publicitaire)</p>' +
+    '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à ' + garantie(d) + ' l\'investissement initial du Client dans Oqora (hors budget publicitaire)</p>' +
     "<h3>5.5 Modalités de Mise en Œuvre</h3><p>Les modalités précises de mise en œuvre de cette garantie, notamment la définition des objectifs, la mesure de la performance et le calcul du retour sur investissement, sont détaillées dans l'Annexe 1.</p>" +
     "<h3>5.6 Conditions et exclusions</h3><p>La garantie ne s'applique que si le Client a respecté toutes les conditions suivantes. Si une seule condition n'est pas respectée, la garantie est annulée :</p>" +
     "<ul><li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li><li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours</li>" + condRappel + "</ul>" +
@@ -383,6 +385,7 @@ function donneesContrat() {
     operatrice: o === "2" ? "Opératrice Dédiée : une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme." : "",
     condition_offre_1: o === "1" ? "Offre 1 : le Client a rappelé toutes ses demandes chaque jour, sans exception." : "",
     periode_evaluation: LETTRES[evalMois] + " (" + evalMois + ")",
+    garantie: garantie(d),
     // date du jour de l'envoi = jour de l'appel ; elle s'écrit dans « Fait à Paris, le … » du modèle GHL
     date_contrat: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
   };
