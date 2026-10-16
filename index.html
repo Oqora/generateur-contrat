@@ -34,6 +34,7 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 .duo { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .choix { display:flex; gap:6px; flex-wrap:wrap; }
 .choix label { flex:1; min-width:64px; }
+.choix.serre label { min-width:52px; }
 .choix input { position:absolute; opacity:0; pointer-events:none; }
 .choix span { display:block; text-align:center; padding:9px 6px; border:1px solid var(--bord); border-radius:8px; font-size:14px; cursor:pointer; background:var(--surface); color:var(--texte); }
 .choix span small { display:block; font-size:11px; color:var(--gris); margin-top:2px; font-variant-numeric:tabular-nums; }
@@ -111,11 +112,16 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
       <div class="aide" id="pub"></div></div>
 
     <div class="q"><div class="lab">Durée</div>
-      <div class="choix">
+      <div class="choix serre">
         <label><input type="radio" name="duree" value="3" checked><span>3 mois</span></label>
         <label><input type="radio" name="duree" value="4"><span>4 mois</span></label>
         <label><input type="radio" name="duree" value="6"><span>6 mois</span></label>
         <label><input type="radio" name="duree" value="12"><span>1 an</span></label>
+        <label><input type="radio" name="duree" value="autre"><span>Autre</span></label>
+      </div>
+      <div id="dureeAutreBloc" style="margin-top:8px" hidden>
+        <input type="number" id="dureeAutre" min="1" max="36" step="1" value="1" aria-label="Nombre de mois">
+        <div class="aide">Nombre de mois, par exemple 1 pour un mois de test.</div>
       </div></div>
 
     <div class="q"><label for="prix">Prix mensuel HT (€)</label><input type="number" id="prix" min="0" step="50">
@@ -166,10 +172,16 @@ var GRILLE = {
   moyen: { 1: 1500, 2: 2200, pub: 30 },
   grand: { 1: 2500, 2: 3200, pub: 50 }
 };
-var LETTRES = { 3: "trois", 4: "quatre" };
+var LETTRES = { 1: "un", 2: "deux", 3: "trois", 4: "quatre" };
 
 var $ = function (id) { return document.getElementById(id); };
 function val(name) { var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : ""; }
+// Durée en mois : un des boutons, ou « Autre » = le nombre tapé par Jules (ex. 1 mois de test, 16/10)
+function duree() {
+  if (val("duree") !== "autre") return parseInt(val("duree"), 10);
+  var n = parseInt($("dureeAutre").value, 10);
+  return n > 0 ? n : 1;
+}
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 function euros(n) { return Number(n).toLocaleString("fr-FR").replace(/ /g, " ") + "€"; }
 function champ(v, repli) { return v ? esc(v) : '<span class="vide">' + repli + "</span>"; }
@@ -213,12 +225,13 @@ function blocPaiement(prix, d) {
 }
 function majPaiement() {
   $("nbFoisBloc").hidden = val("paiement") !== "plusieurs";
-  var p = parseFloat($("prix").value), d = parseInt(val("duree"), 10);
+  $("dureeAutreBloc").hidden = val("duree") !== "autre";
+  var p = parseFloat($("prix").value), d = duree();
   $("totalAide").textContent = p > 0 ? "Total : " + euros(p * d) + " HT sur " + d + " mois (même prix qu'au mois)." : "";
 }
 
 function rendre() {
-  var o = val("offre"), d = parseInt(val("duree"), 10);
+  var o = val("offre"), d = duree();
   var evalMois = Math.min(4, d);
   var gerante = [$("prenom").value.trim(), $("nom").value.trim()].filter(Boolean).join(" ");
   var centre = $("centre").value.trim(), adresse = $("adresse").value.trim();
@@ -358,7 +371,7 @@ $("pdf").addEventListener("click", async function () {
 // qui crée ou met à jour la fiche de la gérante et lui envoie le modèle « Contrat Oqora » par e-mail.
 var WEBHOOK = "https://services.leadconnectorhq.com/hooks/jmUms8s51Jw4OuPsmVLt/webhook-trigger/a6be0eb0-b60d-439a-bd2f-9ae7bab4474e";
 function donneesContrat() {
-  var o = val("offre"), d = parseInt(val("duree"), 10), evalMois = Math.min(4, d);
+  var o = val("offre"), d = duree(), evalMois = Math.min(4, d);
   var t = paiementTexte($("prix").value, d);
   return {
     email: $("email").value.trim(), prenom: $("prenom").value.trim(), nom: $("nom").value.trim(),
