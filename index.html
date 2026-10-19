@@ -40,6 +40,7 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 .choix span small { display:block; font-size:11px; color:var(--gris); margin-top:2px; font-variant-numeric:tabular-nums; }
 .choix input:checked + span { background:var(--accent); border-color:var(--accent); color:var(--accent-texte); }
 .choix input:checked + span small { color:var(--accent-texte); opacity:.8; }
+.choix input:disabled + span { opacity:.4; cursor:not-allowed; }
 .aide { font-size:12px; color:var(--gris); margin-top:6px; line-height:1.4; }
 .btn { width:100%; padding:13px; border:0; border-radius:10px; background:var(--accent); color:var(--accent-texte); font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; }
 .btn:hover { filter:brightness(1.08); }
@@ -118,11 +119,13 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
         <label><input type="radio" name="duree" value="6"><span>6 mois</span></label>
         <label><input type="radio" name="duree" value="12"><span>1 an</span></label>
         <label><input type="radio" name="duree" value="autre"><span>Autre</span></label>
+        <label><input type="radio" name="duree" value="mensuel"><span>Mois par mois<small>sans engagement</small></span></label>
       </div>
       <div id="dureeAutreBloc" style="margin-top:8px" hidden>
         <input type="number" id="dureeAutre" min="1" max="36" step="1" value="1" aria-label="Nombre de mois">
         <div class="aide">Nombre de mois, par exemple 1 pour un mois de test.</div>
-      </div></div>
+      </div>
+      <div class="aide" id="mensuelAide" hidden>Mois par mois : paiement chaque mois, sans garantie. Elle peut arrêter quand elle veut ; le mois commencé est dû en entier.</div></div>
 
     <div class="q"><div class="lab">Garantie</div>
       <div class="choix">
@@ -184,7 +187,16 @@ var LETTRES = { 1: "un", 2: "deux", 3: "trois", 4: "quatre" };
 var $ = function (id) { return document.getElementById(id); };
 function val(name) { var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : ""; }
 // Durée en mois : un des boutons, ou « Autre » = le nombre tapé par Jules (ex. 1 mois de test, 16/10)
+// « Mois par mois » : sans engagement, renouvelé chaque mois, sans garantie ; le contrat compte 1 mois (Jules, 19/10)
+function sansEngagement() { return val("duree") === "mensuel"; }
+// Article 2, aussi envoyé tel quel au CRM (champ « Contrat - Article 2 », modèle « Contrat Oqora sans garantie »)
+function texteArticle2(d) {
+  return sansEngagement()
+    ? "La durée de l'accompagnement est d'un (1) mois, renouvelé chaque mois à compter de la date de signature de ce contrat. Il n'y a pas d'engagement de durée : le Client peut arrêter l'accompagnement à tout moment. Tout mois commencé est dû en entier : l'accompagnement continue jusqu'à la fin de ce mois, puis s'arrête."
+    : "La durée de l'accompagnement est de " + d + " mois, à compter de la date de signature de ce contrat.";
+}
 function duree() {
+  if (sansEngagement()) return 1;
   if (val("duree") !== "autre") return parseInt(val("duree"), 10);
   var n = parseInt($("dureeAutre").value, 10);
   return n > 0 ? n : 1;
@@ -221,7 +233,7 @@ function majTranche() {
 function paiementTexte(prix, d) {
   var mode = val("paiement"), p = parseFloat(prix), total = p > 0 ? p * d : 0;
   var tot = total ? euros(total) : "[__] €";
-  if (mode === "mois") return { titre: "PAIEMENT MENSUEL", montant: (prix ? euros(prix) : "[__] €") + " HT par mois", detail: "Paiement mensuel sur une période de " + d + " mois" };
+  if (mode === "mois") return { titre: "PAIEMENT MENSUEL", montant: (prix ? euros(prix) : "[__] €") + " HT par mois", detail: sansEngagement() ? "Paiement mensuel, sans engagement de durée" : "Paiement mensuel sur une période de " + d + " mois" };
   if (mode === "plusieurs") {
     var n = parseInt(val("nbFois"), 10), part = total ? Math.round(total / n * 100) / 100 : 0;
     // En 2 fois : le 2e paiement tombe 15 jours après le jour de l'envoi (= jour de l'appel), date calculée toute seule (Jules, 16/10)
@@ -240,10 +252,19 @@ function blocPaiement(prix, d) {
   return '<div class="pay"><div class="t">' + t.titre + "</div><div><b>" + m + "</b></div><div>" + t.detail.replace("[__] €", '<span class="vide">[__] €</span>') + "</div></div>";
 }
 function majPaiement() {
+  // Mois par mois : paiement chaque mois et sans garantie, imposés (Jules, 19/10 : « quand c'est mois par mois, on peut pas garantir »)
+  var se = sansEngagement();
+  document.querySelector('input[name="garantie"][value="avec"]').disabled = se;
+  document.querySelectorAll('input[name="paiement"]').forEach(function (e) { e.disabled = se && e.value !== "mois"; });
+  if (se) {
+    document.querySelector('input[name="garantie"][value="sans"]').checked = true;
+    document.querySelector('input[name="paiement"][value="mois"]').checked = true;
+  }
+  $("mensuelAide").hidden = !se;
   $("nbFoisBloc").hidden = val("paiement") !== "plusieurs";
   $("dureeAutreBloc").hidden = val("duree") !== "autre";
   var p = parseFloat($("prix").value), d = duree();
-  $("totalAide").textContent = p > 0 ? "Total : " + euros(p * d) + " HT sur " + d + " mois (même prix qu'au mois)." : "";
+  $("totalAide").textContent = !(p > 0) ? "" : se ? euros(p) + " HT par mois, sans engagement." : "Total : " + euros(p * d) + " HT sur " + d + " mois (même prix qu'au mois).";
 }
 
 function rendre() {
@@ -279,7 +300,7 @@ function rendre() {
     champ(objectif ? euros(objectif) : "", "[__] €") + ' en construisant son "écosystème d\'acquisition" sur l\'accompagnement de ' + d + " mois.</p>" +
 
     "<h2>Article 2 : Durée de l'accompagnement</h2>" +
-    "<p>La durée de l'accompagnement est de " + d + " mois, à compter de la date de signature de ce contrat.</p>" +
+    "<p>" + texteArticle2(d) + "</p>" +
 
     '<h2 class="brk">Article 3 : Services fournis</h2>' +
     "<h3>Support 7j/7</h3><p>Le Prestataire fournira un support continu 7 jours sur 7.</p>" +
@@ -402,6 +423,7 @@ function donneesContrat() {
     operatrice: o === "2" ? "Opératrice Dédiée : une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme." : "",
     condition_offre_1: o === "1" ? "Offre 1 : le Client a rappelé toutes ses demandes chaque jour, sans exception." : "",
     periode_evaluation: LETTRES[evalMois] + " (" + evalMois + ")",
+    article_2: texteArticle2(d),
     garantie: texteGarantie(d),
     // date du jour de l'envoi = jour de l'appel ; elle s'écrit dans « Fait à Paris, le … » du modèle GHL
     date_contrat: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
