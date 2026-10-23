@@ -1,19 +1,68 @@
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Ouverture de votre contrat…</title>
+<html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Votre contrat Oqora</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{margin:0;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:#f3f5f9;color:#161a24;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;padding:24px}p{font-size:17px}a{color:#2b3a8f}</style>
-</head><body><div><p>Ouverture de votre contrat…</p><p id="m"></p></div>
+<style>
+html,body{height:100%}
+body{margin:0;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:#f3f5f9;color:#161a24}
+#boite{display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
+#boite p{font-size:17px;margin:8px 0}
+a{color:#2b3a8f}
+#cadre{position:fixed;inset:0;display:none;background:#ffffff}
+#cadre iframe{width:100%;height:100%;border:0}
+</style>
+</head><body><div id="boite"><div><p id="t">Ouverture de votre contrat…</p><p id="m"></p></div></div><div id="cadre"></div>
+<script src="https://static.signwell.com/assets/embedded.js"></script>
 <script>
-// Reçoit ?u=<lien GHL> et l'ouvre en français : GHL envoie ses liens de signature avec locale=en-US (aucun réglage),
-// et la page de signature suit ce paramètre. On le remplace par fr-FR avant de rediriger.
+// Page de signature d'Oqora. Trois cas :
+// 1. ?fini=1&c=<contrat> : SignWell revient ici après la signature. On remercie et on demande au serveur de finir
+//    (PDF rangé, e-mail « Votre contrat Oqora est signé ») ; le serveur vérifie lui-même auprès de SignWell.
+// 2. ?c=<contrat>&u=<lien SignWell> (e-mails envoyés sans GHL, depuis le 23/10/2026) : la signature s'ouvre ici,
+//    en français (langue réglée sur le document SignWell).
+// 3. ?u=<lien GHL> (anciens e-mails GHL) : comme avant, ouverture en français sur sendlink.co.
 (function () {
-  var q = location.search; var i = q.indexOf('u=');
-  if (i < 0) { document.getElementById('m').textContent = "Lien incomplet. Ouvrez le lien depuis l'e-mail reçu."; return; }
+  var FINI = "https://keetfedlotpcaykfxqzr.supabase.co/functions/v1/contrats/fini";
+  var t = document.getElementById("t"), m = document.getElementById("m"), cadre = document.getElementById("cadre");
+  var q = location.search;
+  function param(nom) { var r = new RegExp("[?&]" + nom + "=([^&]*)").exec(q); return r ? r[1] : ""; }
+  function lienSecours(u) { m.innerHTML = 'Si rien ne se passe, <a href="' + u.replace(/"/g, "&quot;") + '">cliquez ici</a>.'; }
+  function merci(c) {
+    cadre.style.display = "none";
+    document.title = "Contrat signé";
+    t.textContent = "Merci, votre contrat est signé.";
+    m.textContent = "Vous allez recevoir une copie par e-mail dans quelques minutes.";
+    if (/^[0-9a-f-]{36}$/.test(c)) {
+      fetch(FINI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ c: c }) }).catch(function () {});
+    }
+  }
+  var c = param("c");
+  if (param("fini")) { merci(c); return; }
+  var i = q.indexOf("u=");
+  if (i < 0) { m.textContent = "Lien incomplet. Ouvrez le lien depuis l'e-mail reçu."; return; }
   var u = q.slice(i + 2);
   if (/^https?%3A/i.test(u)) { try { u = decodeURIComponent(u); } catch (e) {} }
-  if (!/^https:\/\/(www\.)?sendlink\.co\//.test(u) && !/leadconnectorhq\.com/.test(u)) { document.getElementById('m').innerHTML = 'Lien non reconnu.'; return; }
-  if (/[?&]locale=/.test(u)) u = u.replace(/([?&])locale=[^&]*/, '$1locale=fr-FR'); else u += (u.indexOf('?') < 0 ? '?' : '&') + 'locale=fr-FR';
-  document.getElementById('m').innerHTML = 'Si rien ne se passe, <a href="' + u.replace(/"/g, '&quot;') + '">cliquez ici</a>.';
+
+  // 2. Lien SignWell : signature intégrée dans cette page (sinon, ouverture directe du lien).
+  if (/^https:\/\/(www\.|app\.)?signwell\.com\//.test(u)) {
+    lienSecours(u);
+    if (typeof SignWellEmbed !== "function") { location.replace(u); return; }
+    cadre.style.display = "block";
+    new SignWellEmbed({
+      url: u,
+      containerId: "cadre",
+      events: {
+        completed: function () { merci(c); },
+        declined: function () { cadre.style.display = "none"; t.textContent = "Le contrat n'a pas été signé."; m.textContent = "Une question ? Répondez simplement à l'e-mail reçu."; },
+        error: function () { cadre.style.display = "none"; t.textContent = "Le contrat ne s'est pas ouvert ici."; }
+      }
+    }).open();
+    return;
+  }
+
+  // 3. Ancien lien GHL : GHL envoie ses liens de signature avec locale=en-US (aucun réglage), et la page de
+  //    signature suit ce paramètre. On le remplace par fr-FR avant de rediriger.
+  if (!/^https:\/\/(www\.)?sendlink\.co\//.test(u) && !/leadconnectorhq\.com/.test(u)) { m.textContent = "Lien non reconnu."; return; }
+  if (/[?&]locale=/.test(u)) u = u.replace(/([?&])locale=[^&]*/, "$1locale=fr-FR"); else u += (u.indexOf("?") < 0 ? "?" : "&") + "locale=fr-FR";
+  lienSecours(u);
   location.replace(u);
 })();
 </script></body></html>
