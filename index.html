@@ -76,6 +76,8 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 .contrat .sign div { width:45%; }
 .contrat .vide { background:#fff0a8; }
 .contrat.export .vide { background:none; }
+.contrat .zone-sign { height:64px; padding-top:10px; box-sizing:border-box; }
+.contrat .balise { color:#ffffff; font-size:6px; line-height:6px; white-space:nowrap; }
 
 @media (max-width: 900px) {
   .app { grid-template-columns:minmax(0,1fr); padding-inline:16px; padding-block:16px; }
@@ -96,7 +98,7 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
       <div class="duo"><input type="text" id="prenom" placeholder="Prénom"><input type="text" id="nom" placeholder="Nom"></div></div>
     <div class="q"><label for="adresse">Adresse du centre</label><input type="text" id="adresse"></div>
     <div class="q"><label for="email">E-mail de la gérante</label><input type="email" id="email" placeholder="Pour l'envoi du contrat à signer">
-      <div class="aide">Le contrat lui est envoyé à cette adresse. C'est sa fiche dans le CRM qui est créée ou mise à jour.</div></div>
+      <div class="aide">Le contrat lui est envoyé à cette adresse.</div></div>
 
     <div class="q"><div class="lab">Offre</div>
       <div class="choix">
@@ -162,7 +164,7 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
     <div>
       <button type="button" class="btn" id="signer">Envoyer pour signature</button>
       <div class="etat" id="etatSigner" role="status"></div>
-      <div class="aide">Elle reçoit le contrat par e-mail pendant l'appel et le signe en ligne. La date et sa signature se posent là. Le contrat signé se retrouve dans le CRM, Paiements › Certificats et contrats.</div>
+      <div class="aide">Elle reçoit le contrat par e-mail pendant l'appel et le signe en ligne. La date et sa signature se posent là. Le contrat signé lui est envoyé par e-mail, avec une copie pour toi, et il est rangé dans Supabase.</div>
     </div>
     <div>
       <button type="button" class="btn" id="pdf" style="background:var(--accent-doux);color:var(--texte)">Télécharger le PDF</button>
@@ -267,14 +269,15 @@ function majPaiement() {
   $("totalAide").textContent = !(p > 0) ? "" : se ? euros(p) + " HT par mois, sans engagement." : "Total : " + euros(p * d) + " HT sur " + d + " mois (même prix qu'au mois).";
 }
 
-function rendre() {
+function rendre(opts) {
+  opts = opts || {};
   var o = val("offre"), d = duree();
   var avecGarantie = val("garantie") !== "sans";
   var evalMois = Math.min(4, d);
   var gerante = [$("prenom").value.trim(), $("nom").value.trim()].filter(Boolean).join(" ");
   var centre = $("centre").value.trim(), adresse = $("adresse").value.trim();
   var prix = $("prix").value, objectif = $("objectif").value;
-  var dateTxt = "___ / ___ / ______";
+  var dateTxt = opts.date || "___ / ___ / ______"; // à l'envoi : la date du jour, comme le faisait le modèle GHL
   var caAct = $("caActuel").value;
   var couverture = (caAct ? "De " + euros(caAct) + " à " : "Objectif ") + champ(objectif ? euros(objectif) : "", "[__] €") + "/mois";
   var client = [champ(centre, "[Nom du centre]"), adresse ? esc(adresse) : "", champ(gerante, "[Nom de la gérante]")].filter(Boolean).join(", ");
@@ -342,8 +345,8 @@ function rendre() {
     "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
 
     '<p style="text-align:center;margin-top:36pt">Fait en deux exemplaires originaux<br><br>à Paris, le ' + dateTxt + "</p>" +
-    '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>_______________________</div>' +
-    "<div>Pour le Client<br><b>" + champ(gerante, "[Nom]") + "</b><br>" + (centre ? esc(centre) : "") + "<br><br>Signature :<br>_______________________</div></div>";
+    '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>' + (opts.signature ? '<div class="zone-sign"></div>' : "") + '_______________________</div>' +
+    "<div>Pour le Client<br><b>" + champ(gerante, "[Nom]") + "</b><br>" + (centre ? esc(centre) : "") + "<br><br>Signature :<br>" + (opts.signature ? '<div class="zone-sign"><span class="balise">' + BALISE + "</span></div>" : "") + "_______________________</div></div>";
 
 }
 
@@ -405,11 +408,26 @@ $("pdf").addEventListener("click", async function () {
   }
 });
 
-// Envoi pour signature : les données partent au CRM (workflow « Contrat : envoi pour signature »),
-// qui crée ou met à jour la fiche de la gérante et lui envoie le modèle « Contrat Oqora » par e-mail.
-var WEBHOOK = "https://services.leadconnectorhq.com/hooks/jmUms8s51Jw4OuPsmVLt/webhook-trigger/a6be0eb0-b60d-439a-bd2f-9ae7bab4474e";
-// « Sans garantie » : workflow « Contrat sans garantie : envoi pour signature », modèle GHL « Contrat Oqora sans garantie » (16/10)
-var WEBHOOK_SANS_GARANTIE = "https://services.leadconnectorhq.com/hooks/jmUms8s51Jw4OuPsmVLt/webhook-trigger/J47IMGwdYll2bzEITDuU";
+// Envoi pour signature (sans GHL depuis le 23/10/2026) : le contrat exact part à la fonction Supabase « contrats »,
+// qui le fait signer par SignWell (page en français) et envoie les e-mails « Votre contrat Oqora à signer » puis
+// « Votre contrat Oqora est signé ». Avec ou sans garantie : même adresse, le modèle suit le bouton Garantie.
+var ENVOI = "https://keetfedlotpcaykfxqzr.supabase.co/functions/v1/contrats/envoyer";
+// Balise SignWell : place la case de signature de la gérante (blanche, invisible) entre « Signature : » et la ligne.
+var BALISE = "{{signature:1:y:::signature_client:200:60}}";
+// Le contrat tel qu'il sera signé : même texte que l'aperçu, avec la date du jour et la case de signature.
+function htmlPourSignature(dateTxt) {
+  rendre({ date: dateTxt, signature: true });
+  var corps = $("contrat").innerHTML;
+  rendre();
+  var css = "@page { size: A4; margin: 22mm 20mm 20mm 20mm; } body { margin:0; background:#ffffff; }";
+  Array.prototype.forEach.call(document.styleSheets, function (f) {
+    try {
+      Array.prototype.forEach.call(f.cssRules, function (r) { if (r.selectorText && r.selectorText.indexOf(".contrat") === 0) css += "\n" + r.cssText; });
+    } catch (e) {}
+  });
+  return '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Contrat Oqora</title><style>' + css + "</style></head><body>" +
+    '<div class="contrat export">' + corps + "</div></body></html>";
+}
 function donneesContrat() {
   var o = val("offre"), d = duree(), evalMois = Math.min(4, d);
   var t = paiementTexte($("prix").value, d);
@@ -446,11 +464,13 @@ $("signer").addEventListener("click", async function () {
   if (m.length) { etatSigner("Il manque : " + m.join(", ") + ".", "erreur"); return; }
   var btn = this; btn.disabled = true; etatSigner("Envoi en cours…");
   try {
-    var r = await fetch(val("garantie") === "sans" ? WEBHOOK_SANS_GARANTIE : WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(donneesContrat()) });
-    if (!r.ok) throw new Error(r.status);
-    etatSigner("Contrat envoyé à " + $("email").value.trim() + ". Elle le reçoit par e-mail dans la minute.", "ok");
+    var donnees = donneesContrat();
+    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: val("garantie") }) });
+    var rep = await r.json().catch(function () { return {}; });
+    if (!r.ok) throw new Error(rep.erreur || "");
+    etatSigner((rep.mode === "essai" ? "Essai : contrat" : "Contrat") + " envoyé à " + $("email").value.trim() + ". Elle le reçoit par e-mail dans la minute.", "ok");
   } catch (err) {
-    etatSigner("L'envoi n'a pas marché. Vérifie la connexion et réessaie.", "erreur");
+    etatSigner(err && err.message ? err.message : "L'envoi n'a pas marché. Vérifie la connexion et réessaie.", "erreur");
   } finally { btn.disabled = false; }
 });
 
