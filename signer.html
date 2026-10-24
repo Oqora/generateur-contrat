@@ -30,8 +30,11 @@ a{color:#2b3a8f}
     document.title = "Contrat signé";
     t.textContent = "Merci, votre contrat est signé.";
     m.textContent = "Vous allez recevoir une copie par e-mail dans quelques minutes.";
+    // Filet de sécurité, 15 s plus tard : d'habitude l'avis de SignWell a déjà tout fait.
     if (/^[0-9a-f-]{36}$/.test(c)) {
-      fetch(FINI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ c: c }) }).catch(function () {});
+      setTimeout(function () {
+        fetch(FINI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ c: c }) }).catch(function () {});
+      }, 15000);
     }
   }
   var c = param("c");
