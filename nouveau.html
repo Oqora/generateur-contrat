@@ -208,7 +208,9 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
       <div class="fl"><span class="k">Prix HT</span><span class="v" id="f-pu"></span><button type="button" data-copie="f-pu">Copier</button></div>
       <div class="fl"><span class="k">TVA 20 %</span><span class="v" id="f-tva"></span><span></span></div>
       <div class="fl"><span class="k">Total TTC</span><span class="v" id="f-ttc"></span><span></span></div>
-      <div class="aide">Quantité 1, échéance à réception. Indy numérote la facture et l'envoie. Paiement par virement instantané : vérifie une fois que l'IBAN de la SASU s'affiche sur tes factures Indy.</div>
+      <div class="fl"><span class="k">Échéance</span><span class="v">À réception : le paiement se demande au début du mois, jamais en fin de mois</span><button type="button" data-copie="f-echeance">Copier</button></div>
+      <span id="f-echeance" hidden data-brut="À réception"></span>
+      <div class="aide">Quantité 1. Indy numérote la facture et l'envoie. Paiement par virement instantané : vérifie une fois que l'IBAN de la SASU s'affiche sur tes factures Indy.</div>
     </div>
   </form>
 
@@ -226,7 +228,7 @@ var LETTRES = { 1: "un", 2: "deux", 3: "trois", 4: "quatre" };
 // Textes « proposés » (jamais validés par Jules) : ils n'entrent dans un contrat envoyé qu'après son oui mot pour mot.
 // Tant que c'est false : surlignés en jaune dans l'aperçu (et dans les PDF de relecture, ?validation=1), envoi bloqué
 // pour Pub + Insta ; la phrase du 10 % n'apparaît qu'en relecture.
-var VALIDE = { insta: false, dix: false, art2: false, sasu40: false };
+var VALIDE = { insta: false, dix: false, art2: false, sasu40: false, debutMois: false };
 var RELECTURE = /[?&]validation=1(&|$)/.test(location.search);
 
 var $ = function (id) { return document.getElementById(id); };
@@ -332,6 +334,7 @@ function majPaiement() {
 // « le Client appelle lui-même » en Offre 1, sans renvoi à l'Annexe 1 (5.1) ni phrase sur le choix de la modalité.
 // Complète : texte d'origine (Annexe 1, phrase sur la modalité, 500 €) ; la SASU et les 40 € y sont seulement proposés
 // (surlignés en relecture, absents d'un contrat envoyé tant que VALIDE.sasu40 est false).
+var DEBUT_MOIS = "Le paiement est demandé au début de chaque mois, jamais en fin de mois.";
 var SASU = "Oqora, SASU au capital de 5 000 €<br>6 Passage Alexandrine, 75011 Paris<br>SIREN 130 092 422 RCS Paris<br>représentée par Jules Couapel";
 var ITEMS_ACQUISITION = ["la création de la stratégie ads (contenus, positionnement, campagnes) ;", "la création des publicités et des créas ;", "la création et la gestion des campagnes publicitaires Meta ;", "la gestion journalière des budgets Meta ;", "l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;", "la création d'une landing page pour récupérer les informations des prospects ;", "la mise en place du formulaire et des outils CRM de gestion des leads ;", "la mise en place d'un outil de suivi des performances en direct."];
 var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>";
@@ -398,6 +401,9 @@ function rendre(opts) {
     "<p>Le Client reconnaît et accepte l'obligation légale de procéder au paiement des services fournis par le Prestataire selon les modalités suivantes :</p>" +
     blocPaiement(prix, d) + dix +
     "<p>Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.</p>" +
+    // Règle de Jules (21/11, 20 h 30) : « Le paiement, on le demande toujours au début du mois. Jamais en fin de mois. »
+    // Même phrase que dans le contrat du 20/11 ; seulement en paiement chaque mois (en une ou plusieurs fois, la date est déjà écrite).
+    (val("paiement") === "mois" ? "<p>" + (VALIDE.debutMois ? DEBUT_MOIS : '<span class="propose">' + DEBUT_MOIS + "</span>") + "</p>" : "") +
     "<p>" + (complete ? "Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>" : "") + "Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
 
     "<h2>Article 5 : " + (avecGarantie ? "Garantie de résultat" : "Engagement et suivi des résultats") + "</h2>" +
