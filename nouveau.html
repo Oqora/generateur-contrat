@@ -226,7 +226,7 @@ var LETTRES = { 1: "un", 2: "deux", 3: "trois", 4: "quatre" };
 // Textes « proposés » (jamais validés par Jules) : ils n'entrent dans un contrat envoyé qu'après son oui mot pour mot.
 // Tant que c'est false : surlignés en jaune dans l'aperçu (et dans les PDF de relecture, ?validation=1), envoi bloqué
 // pour Pub + Insta ; la phrase du 10 % n'apparaît qu'en relecture.
-var VALIDE = { insta: false, dix: false, art2: false };
+var VALIDE = { insta: false, dix: false, art2: false, sasu40: false };
 var RELECTURE = /[?&]validation=1(&|$)/.test(location.search);
 
 var $ = function (id) { return document.getElementById(id); };
@@ -241,9 +241,9 @@ function ligneGrille(f, o, t) {
 // Durée en mois : un des boutons, ou « Autre » = le nombre tapé (ex. 1 mois de test, 16/10)
 // « Mois par mois » : sans engagement, renouvelé chaque mois, sans garantie ; le contrat compte 1 mois (Jules, 19/10)
 function sansEngagement() { return val("duree") === "mensuel"; }
-// Complète : texte du générateur d'origine (« accompagnement »). Pub et Pub + Insta : comme le contrat de Clinic laser
+// Complète : texte du générateur d'origine (« accompagnement »). Pub et Pub + Insta : comme le contrat pub seule du 20/11
 // (21/11, demandé par Jules) : « prestation », sans objectif de CA ni support 7j/7 ; en mois par mois, l'article 2 de
-// Clinic laser (texte proposé, pas encore validé mot à mot par Jules : surligné tant que VALIDE.art2 est false).
+// ce contrat (texte proposé, pas encore validé mot à mot par Jules : surligné tant que VALIDE.art2 est false).
 var ART2_SANS_DUREE = "La prestation commence à la date de signature de ce contrat, pour une durée indéterminée. Il n'y a pas d'engagement de durée : le Client peut arrêter la prestation à tout moment. Tout mois commencé est dû en entier : la prestation continue jusqu'à la fin de ce mois, puis s'arrête.";
 function texteArticle2(d) {
   if (val("formule") !== "Complète") return sansEngagement() ? ART2_SANS_DUREE : "La durée de la prestation est de " + d + " mois, à compter de la date de signature de ce contrat.";
@@ -326,10 +326,13 @@ function majPaiement() {
 }
 
 // ---------------------------------------------------------------- le contrat
-// Texte de base du générateur d'origine. Par formule, on retire ce qui ne sert pas (comme pour Clinic laser, 20/11),
+// Texte de base du générateur d'origine. Par formule, on retire ce qui ne sert pas (comme pour le contrat pub seule du 20/11),
 // sans rien ajouter qui n'ait été validé, sauf les passages « proposés » surlignés (voir VALIDE).
-// Repris partout de Clinic laser (changements dictés par Jules) : la SASU comme Prestataire, 40 € au 9.2,
-// « le Client appelle lui-même » en Offre 1 ; retirés : le renvoi à l'Annexe 1 (5.1) et la phrase sur le choix de la modalité.
+// Pub et Pub + Insta : comme ce contrat (changements dictés par Jules) : la SASU comme Prestataire, 40 € au 9.2,
+// « le Client appelle lui-même » en Offre 1, sans renvoi à l'Annexe 1 (5.1) ni phrase sur le choix de la modalité.
+// Complète : texte d'origine (Annexe 1, phrase sur la modalité, 500 €) ; la SASU et les 40 € y sont seulement proposés
+// (surlignés en relecture, absents d'un contrat envoyé tant que VALIDE.sasu40 est false).
+var SASU = "Oqora, SASU au capital de 5 000 €<br>6 Passage Alexandrine, 75011 Paris<br>SIREN 130 092 422 RCS Paris<br>représentée par Jules Couapel";
 var ITEMS_ACQUISITION = ["la création de la stratégie ads (contenus, positionnement, campagnes) ;", "la création des publicités et des créas ;", "la création et la gestion des campagnes publicitaires Meta ;", "la gestion journalière des budgets Meta ;", "l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;", "la création d'une landing page pour récupérer les informations des prospects ;", "la mise en place du formulaire et des outils CRM de gestion des leads ;", "la mise en place d'un outil de suivi des performances en direct."];
 var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>";
 // Proposé (grille du 18/11 : « 10 vidéos tous les 4 mois, montées avec ses rushs ; supplément de 300 € par tournage si Jules vient filmer, alors 5 filmées + 5 rushs »)
@@ -359,9 +362,9 @@ function rendre(opts) {
     ? "<h3>Opératrice Dédiée</h3><p><b>Une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme.</b></p>"
     : "";
   var items = ITEMS_ACQUISITION.slice();
-  if (!complete) items.splice(2, 0, "le montage des publicités vidéo ;"); // sans tournage, le montage des pubs reste (Clinic laser)
+  if (!complete) items.splice(2, 0, "le montage des publicités vidéo ;"); // sans tournage, le montage des pubs reste (contrat du 20/11)
   var acquisition = "<h3>Acquisition</h3><p>Le Prestataire assurera :</p><ul>" + items.map(function (i) { return "<li>" + i + "</li>"; }).join("") + "</ul>" +
-    (o === "1" ? "<p>Le Client appelle lui-même chaque demande, prend les rendez-vous dans l'agenda du centre et les confirme.</p>" : "");
+    (o === "1" && !complete ? "<p>Le Client appelle lui-même chaque demande, prend les rendez-vous dans l'agenda du centre et les confirme.</p>" : "");
   var videos = complete ? TOURNAGE_COMPLET : insta ? blocPropose(VIDEOS_INSTA, VALIDE.insta) : "";
   var ressources = complete ? RESSOURCES : "";
   var dix = complete ? "" : VALIDE.dix ? clauseDix(caAct) : RELECTURE ? '<div class="propose">' + clauseDix(caAct) + "</div>" : "";
@@ -375,7 +378,7 @@ function rendre(opts) {
     '<div class="org">Oqora</div><div class="who">Jules Couapel · Paris</div></div>' +
 
     '<h2 class="brk">Parties contractantes</h2><table class="parties">' +
-    '<tr><td><b>Prestataire</b></td><td>Oqora, SASU au capital de 5 000 €<br>6 Passage Alexandrine, 75011 Paris<br>SIREN 130 092 422 RCS Paris<br>représentée par Jules Couapel<br>(ci-après dénommé "le Prestataire")</td></tr>' +
+    '<tr><td><b>Prestataire</b></td><td>' + (!complete || VALIDE.sasu40 ? SASU : RELECTURE ? '<span class="propose">' + SASU + "</span>" : 'Jules Couapel<br>Oqora<br>6 Passage Alexandrine, Paris') + '<br>(ci-après dénommé "le Prestataire")</td></tr>' +
     "<tr><td><b>Client</b></td><td>" + client + '<br>(ci-après dénommé "le Client")</td></tr></table>' +
 
     "<h2>Article 1 : Objet du contrat</h2>" +
@@ -395,10 +398,10 @@ function rendre(opts) {
     "<p>Le Client reconnaît et accepte l'obligation légale de procéder au paiement des services fournis par le Prestataire selon les modalités suivantes :</p>" +
     blocPaiement(prix, d) + dix +
     "<p>Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.</p>" +
-    "<p>Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
+    "<p>" + (complete ? "Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>" : "") + "Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
 
     "<h2>Article 5 : " + (avecGarantie ? "Garantie de résultat" : "Engagement et suivi des résultats") + "</h2>" +
-    "<h3>5.1 Engagement</h3><p>Le Prestataire s'engage à fournir ses services de manière à atteindre les résultats ou objectifs définis conjointement avec le Client.</p>" +
+    "<h3>5.1 Engagement</h3><p>Le Prestataire s'engage à fournir ses services de manière à atteindre les résultats ou objectifs définis conjointement avec le Client" + (complete ? " dans l'Annexe 1" : "") + ".</p>" +
     "<h3>5.2 Période d'Évaluation</h3><p>Au terme d'une période de " + LETTRES[evalMois] + " (" + evalMois + ") mois à compter de la date d'effet du présent contrat, le Prestataire et le Client évalueront conjointement les performances réalisées.</p>" +
     "<h3>5.3 Bonne Foi et Collaboration</h3><p>Le Client reconnaît que le Prestataire n'a pas l'intention de tendre des pièges délibérés ni d'annuler le contrat en cas d'erreur du Client. Les erreurs sont considérées comme des opportunités d'apprentissage et de correction mutuelle. Pour éviter tout malentendu, les Parties conviennent de travailler de bonne foi pour résoudre les erreurs et garantir le succès de la stratégie, dans le respect des termes du contrat initial.</p>" +
     (avecGarantie ? "<h3>5.4 Non-Réalisation des Objectifs</h3><p>Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :</p>" +
@@ -418,7 +421,7 @@ function rendre(opts) {
     "<h3>8.3 Accès à l'Espace Client</h3><p>Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera " + (complete ? "l'accompagnement" : "la prestation") + " selon les termes de ce contrat.</p>" +
     "<h2>Article 9 : Pénalités de retard</h2>" +
     "<h3>9.1 Déclenchement des Pénalités</h3><p>Toute somme non payée à son échéance donnera lieu au paiement par le Client de pénalités de retard, sans qu'un rappel soit nécessaire.</p>" +
-    "<h3>9.2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de 40€, sauf justification de frais supérieurs.</p>" +
+    "<h3>9.2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de " + (!complete || VALIDE.sasu40 ? "40€" : RELECTURE ? '<span class="propose">40€</span>' : "500€") + ", sauf justification de frais supérieurs.</p>" +
     "<h3>9.3 Conséquences sur les Services</h3><p>En cas de retard de paiement de plus de 10 jours, le Prestataire se réserve le droit de :</p>" +
     "<ul><li>Suspendre l'exécution de ses obligations</li><li>Suspendre ou annuler la fourniture des services</li><li>Résilier le contrat</li></ul><p>Sans que le Client puisse prétendre à une quelconque indemnité.</p>" +
     "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
@@ -485,7 +488,7 @@ async function chercherRegistre(numero) {
     info("siretInfo", "Le registre officiel ne répond pas. Remplis à la main, ou réessaie dans un instant.", "alerte");
   }
 }
-// L'adresse écrite par la cliente n'est pas toujours celle de son siège (Clinic laser, 21/11) : le contrat prend le siège.
+// L'adresse écrite par la cliente n'est pas toujours celle de son siège (vu le 21/11) : le contrat prend le siège.
 function verifierAdresse(siege) {
   var a = $("adresseInfo");
   if (!ecritAdresse || !siege || !siege.code_postal || ecritAdresse.cp === siege.code_postal) { a.hidden = true; return; }
@@ -545,18 +548,16 @@ function manquants() {
   return m;
 }
 // Envoi ouvert à toutes les clientes seulement après le oui de Jules sur les contrats (PDF de relecture du 21/11).
-// Avant : seules ses adresses passent (essais depuis la vraie page).
+// Avant : la page envoie « essai », et la fonction n'accepte alors que les adresses de Jules.
 var ENVOI_OUVERT = false;
-var ADRESSES_JULES = /^(jules\.couapel(\+[a-z0-9._-]+)?@gmail\.com|jules@oqora\.fr|info@oqora\.fr)$/i;
 // Envoi bloqué tant qu'un texte « proposé » est dans le contrat, et toujours en mode relecture
 function blocage() {
   if (RELECTURE) return "Page de relecture : l'envoi est coupé.";
-  if (!ENVOI_OUVERT && $("email").value.trim() && !ADRESSES_JULES.test($("email").value.trim())) return "Nouvelle version en essai : l'envoi aux clientes s'ouvre après ton oui sur les contrats. En attendant, utilise l'ancienne page.";
-  if (val("formule") === "Pub + Insta" && !VALIDE.insta && !ADRESSES_JULES.test($("email").value.trim())) return "Le texte Pub + Insta (surligné en jaune) attend ton oui : l'envoi est bloqué pour cette formule.";
+  if (val("formule") === "Pub + Insta" && !VALIDE.insta) return "Le texte Pub + Insta (surligné en jaune) attend ton oui : l'envoi est bloqué pour cette formule.";
   return "";
 }
 function toutMettreAJour() {
-  // L'objectif de CA n'est dans le contrat que pour la Complète (Pub et Pub + Insta : comme Clinic laser, sans objectif)
+  // L'objectif de CA n'est dans le contrat que pour la Complète (Pub et Pub + Insta : sans objectif, comme le contrat du 20/11)
   var complete = val("formule") === "Complète";
   $("multBloc").hidden = !complete; $("objectif").hidden = !complete;
   $("objectifTitre").textContent = complete ? "CA actuel et objectif" : "CA actuel";
@@ -665,7 +666,7 @@ $("signer").addEventListener("click", async function () {
   var btn = this; btn.disabled = true; etatSigner("Envoi en cours…");
   try {
     var donnees = donneesContrat();
-    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: val("garantie"), signature: "docuseal" }) });
+    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: val("garantie"), signature: "docuseal", essai: !ENVOI_OUVERT }) });
     var rep = await r.json().catch(function () { return {}; });
     if (!r.ok) throw new Error(rep.erreur || "");
     if (rep.signature === "docuseal") {
