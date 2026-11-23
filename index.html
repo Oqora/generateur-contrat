@@ -465,7 +465,9 @@ $("signer").addEventListener("click", async function () {
   var btn = this; btn.disabled = true; etatSigner("Envoi en cours…");
   try {
     var donnees = donneesContrat();
-    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: val("garantie") }) });
+    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: "avec" }) });
+    // Jules, 23/11 : la cliente ne voit jamais « Contrat Oqora sans garantie » (nom en haut de la page de signature) :
+    // on envoie toujours « avec », le nom affiché est « Contrat Oqora ». Le texte signé suit le bouton Garantie.
     var rep = await r.json().catch(function () { return {}; });
     if (!r.ok) throw new Error(rep.erreur || "");
     etatSigner((rep.mode === "essai" ? "Essai : contrat" : "Contrat") + " envoyé à " + $("email").value.trim() + ". Elle le reçoit par e-mail dans la minute.", "ok");
