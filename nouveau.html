@@ -613,6 +613,8 @@ $("pdf").addEventListener("click", async function () {
 // Envoi pour signature : le contrat exact part à la fonction Supabase « contrats ». Elle choisit l'outil : DocuSeal
 // (serveur Oqora, demandé par Jules le 21/11) ou SignWell (par défaut tant que DocuSeal n'est pas allumé pour tous).
 // Avec DocuSeal, le robot du serveur prépare le contrat en quelques secondes : la page suit l'état jusqu'à l'envoi.
+// Jules, 23/11 : la cliente ne doit jamais voir « Contrat Oqora sans garantie » (nom en haut de la page de signature) :
+// on envoie toujours « avec », le nom affiché est « Contrat Oqora ». Le texte signé suit quand même le bouton Garantie.
 var ENVOI = "https://keetfedlotpcaykfxqzr.supabase.co/functions/v1/contrats/envoyer";
 var ETAT = "https://keetfedlotpcaykfxqzr.supabase.co/functions/v1/contrats/etat";
 async function suivreEnvoi(id, email) {
@@ -672,7 +674,7 @@ $("signer").addEventListener("click", async function () {
   var btn = this; btn.disabled = true; etatSigner("Envoi en cours…");
   try {
     var donnees = donneesContrat();
-    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: val("garantie"), signature: "docuseal", essai: !ENVOI_OUVERT }) });
+    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: "avec", signature: "docuseal", essai: !ENVOI_OUVERT }) });
     var rep = await r.json().catch(function () { return {}; });
     if (!r.ok) throw new Error(rep.erreur || "");
     if (rep.signature === "docuseal") {
