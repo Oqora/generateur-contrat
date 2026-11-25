@@ -147,8 +147,6 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
       <div class="aide" id="prixAide">Rempli d'après ta grille Notion. Modifiable.</div></div>
 
     <div class="bloc-titre">Les options</div>
-    <div class="q" id="blocDix"><div class="lab">10 % du chiffre d'affaires en plus</div>
-      <div class="choix"><label><input type="radio" name="dix" value="oui" checked><span>Avec les 10 %</span></label><label><input type="radio" name="dix" value="non"><span>Sans les 10 %</span></label></div></div>
     <div class="q" id="blocTournage" hidden><div class="lab">Tournage dans son centre</div>
       <div class="choix"><label><input type="radio" name="tournage" value="oui"><span>On vient filmer<small>+ 300 € par tournage</small></span></label><label><input type="radio" name="tournage" value="non" checked><span>Avec ses rushs</span></label></div></div>
     <div class="q"><div class="lab">Objectif de CA dans le contrat</div>
@@ -251,8 +249,8 @@ var LETTRES = { 1: "un", 2: "deux", 3: "trois", 4: "quatre" };
 
 // Textes « proposés » (jamais validés par Jules) : ils n'entrent dans un contrat envoyé qu'après son oui mot pour mot.
 // Tant que c'est false : surlignés en jaune dans l'aperçu (et dans les PDF de relecture, ?validation=1), envoi bloqué
-// pour Pub + Insta ; la phrase du 10 % n'apparaît qu'en relecture.
-var VALIDE = { insta: false, dix: false };
+// pour Pub + Insta. Pas de 10 % : Jules ne les propose pas (25/11).
+var VALIDE = { insta: false };
 var RELECTURE = /[?&]validation=1(&|$)/.test(location.search);
 
 var $ = function (id) { return document.getElementById(id); };
@@ -295,7 +293,7 @@ function majPrix() {
   $("prix").value = l ? l.prix : "";
   var ca = parseFloat($("caActuel").value);
   $("pub").textContent = (ca > 0 && ca < 5000 ? "Sous le minimum de 5 000 €/mois : on ne prend pas ce centre. " : "") + "Pub payée par elle à Meta : 20 € par jour minimum.";
-  $("prixAide").textContent = "Rempli d'après ta grille Notion" + (l && l.pourcentage === "+ 10 %" ? ", plus 10 % du chiffre d'affaires en plus." : ".") + " Modifiable.";
+  $("prixAide").textContent = "Rempli d'après ta grille Notion" + ". Modifiable.";
   $("appelsInfo").hidden = o !== "2";
 }
 function majObjectif() {
@@ -362,11 +360,6 @@ var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournag
 var VIDEOS_RUSHS = "<h3>Vidéos</h3><p>Le Prestataire montera 10 vidéos pour l'Instagram du Client tous les 4 mois, avec les rushs du Client.</p>";
 var VIDEOS_TOURNAGE = "<h3>Vidéos</h3><p>Le Prestataire viendra filmer dans le centre du Client, avec un supplément de 300 € HT par tournage. Il montera 10 vidéos pour l'Instagram du Client tous les 4 mois : 5 avec les images du tournage et 5 avec les rushs du Client.</p>";
 var RESSOURCES = "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu) et des scripts.</p>";
-// Proposé (grille du 18/11 : « Les 10 % : sur le CA fait EN PLUS grâce à Oqora, seulement sur Pub et Pub + Insta »)
-function clauseDix(caAct) {
-  return "<p>En plus de ce prix, le Client verse au Prestataire 10 % du chiffre d'affaires qu'il fait en plus grâce au Prestataire, au-dessus de ce qu'il faisait avant" + (caAct ? " (" + euros(caAct) + " par mois)" : "") + ".</p>";
-}
-
 function rendre(opts) {
   opts = opts || {};
   var o = val("offre"), f = val("formule"), d = duree();
@@ -391,7 +384,6 @@ function rendre(opts) {
   var avecTournage = insta && val("tournage") === "oui";
   var videos = complete ? TOURNAGE_COMPLET : insta ? blocPropose(avecTournage ? VIDEOS_TOURNAGE : VIDEOS_RUSHS, VALIDE.insta) : "";
   var ressources = complete ? RESSOURCES : "";
-  var dix = complete || val("dix") !== "oui" ? "" : blocPropose(clauseDix(caAct), VALIDE.dix);
   var avecObjectif = val("avecObjectif") === "oui";
   var condRappel = o === "1" ? "<li>Le Client a rappelé toutes ses demandes chaque jour, sans exception</li>" : "";
 
@@ -421,7 +413,7 @@ function rendre(opts) {
 
     '<h2 class="brk">Article 4 : Modalités de paiement</h2>' +
     "<p>Le Client reconnaît et accepte l'obligation légale de procéder au paiement des services fournis par le Prestataire selon les modalités suivantes :</p>" +
-    blocPaiement(prix, d) + dix +
+    blocPaiement(prix, d) +
     "<p>Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.</p>" +
     // Règle de Jules (21/11, 20 h 30) : « Le paiement, on le demande toujours au début du mois. Jamais en fin de mois. »
     // Même phrase que dans le contrat du 20/11 ; seulement en paiement chaque mois (en une ou plusieurs fois, la date est déjà écrite).
@@ -622,8 +614,8 @@ function toutMettreAJour() {
   var avecObj = val("avecObjectif") === "oui", complete = estComplete(), insta = val("formule") === "Pub + Insta";
   $("multBloc").hidden = !avecObj; $("objectif").hidden = !avecObj;
   $("objectifTitre").textContent = avecObj ? "CA actuel et objectif" : "CA actuel";
-  $("objectifAide").textContent = avecObj ? "Objectif calculé depuis son CA actuel. Modifiable." : "Sert à choisir la taille du centre" + (complete ? "." : " et de point de départ pour les 10 %.");
-  $("blocDix").hidden = complete; $("blocTournage").hidden = !insta;
+  $("objectifAide").textContent = avecObj ? "Objectif calculé depuis son CA actuel. Modifiable." : "Sert à choisir la taille du centre.";
+  $("blocTournage").hidden = !insta;
   $("noteTournage").hidden = !(insta && val("tournage") === "oui");
   majPaiement(); rendre(); majFacture();
   var b = blocage(); $("signer").disabled = !!b; if (b) etatSigner(b, "erreur"); else if ($("etatSigner").className.indexOf("erreur") > -1) etatSigner("");
@@ -710,7 +702,7 @@ function donneesContrat() {
   return {
     email: $("email").value.trim(), prenom: $("prenom").value.trim(), nom: $("nom").value.trim(),
     centre: $("centre").value.trim(), adresse: $("adresse").value.trim(), siret: chiffres($("siret").value),
-    option_dix: !estComplete() && val("dix") === "oui", option_tournage: val("formule") === "Pub + Insta" && val("tournage") === "oui",
+    option_tournage: val("formule") === "Pub + Insta" && val("tournage") === "oui",
     option_objectif: val("avecObjectif") === "oui", option_support: val("support") === "oui",
     formule: val("formule"), offre_nom: l ? l.offre : "", offre: "Offre " + o, duree: String(d),
     ca_actuel: $("caActuel").value ? euros($("caActuel").value) : "", objectif_ca: $("objectif").value ? euros($("objectif").value) : "",
