@@ -24,34 +24,45 @@
 }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--fond); color:var(--texte); font-family:-apple-system, "Helvetica Neue", Arial, sans-serif; }
-.app { display:grid; grid-template-columns:minmax(0,370px) minmax(0,1fr); gap:24px; padding-block:24px; padding-inline:24px; max-width:1400px; margin:0 auto; }
+.app { display:grid; grid-template-columns:minmax(0,390px) minmax(0,1fr); gap:24px; padding-block:24px; padding-inline:24px; max-width:1400px; margin:0 auto; }
 .quiz { background:var(--surface); border:1px solid var(--bord); border-radius:12px; padding:22px; align-self:start; position:sticky; top:calc(env(safe-area-inset-top, 0px) + 16px); max-height:calc(100vh - 48px); overflow:auto; display:flex; flex-direction:column; gap:16px; }
 .quiz h1 { font-size:18px; margin:0; color:var(--accent); text-wrap:balance; }
 .quiz .sous { font-size:13px; color:var(--gris); margin:-10px 0 0; }
+.bloc-titre { font-size:13px; font-weight:800; color:var(--accent); margin:4px 0 -6px; padding-top:10px; border-top:1px solid var(--bord); }
 .q > label, .q > .lab { display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--gris); margin-bottom:6px; }
-input[type=text], input[type=number], input[type=email] { width:100%; padding:10px 12px; border:1px solid var(--bord); border-radius:8px; font-size:15px; font-family:inherit; background:var(--surface); color:var(--texte); font-variant-numeric:tabular-nums; }
-input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+input[type=text], input[type=number], input[type=email], textarea { width:100%; padding:10px 12px; border:1px solid var(--bord); border-radius:8px; font-size:15px; font-family:inherit; background:var(--surface); color:var(--texte); font-variant-numeric:tabular-nums; }
+textarea { min-height:86px; resize:vertical; font-size:14px; line-height:1.4; }
+input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, .btn:focus-visible, .fl button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
 .duo { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .choix { display:flex; gap:6px; flex-wrap:wrap; }
 .choix label { flex:1; min-width:64px; }
-.choix.serre label { min-width:52px; }
+.choix.serre label { min-width:30%; }
 .choix input { position:absolute; opacity:0; pointer-events:none; }
 .choix span { display:block; text-align:center; padding:9px 6px; border:1px solid var(--bord); border-radius:8px; font-size:14px; cursor:pointer; background:var(--surface); color:var(--texte); }
 .choix span small { display:block; font-size:11px; color:var(--gris); margin-top:2px; font-variant-numeric:tabular-nums; }
 .choix input:checked + span { background:var(--accent); border-color:var(--accent); color:var(--accent-texte); }
 .choix input:checked + span small { color:var(--accent-texte); opacity:.8; }
 .choix input:disabled + span { opacity:.4; cursor:not-allowed; }
-.aide { font-size:12px; color:var(--gris); margin-top:6px; line-height:1.4; }
+.aide, .info { font-size:12px; color:var(--gris); margin-top:6px; line-height:1.45; }
+.info.ok { color:var(--ok); }
+.info.alerte { color:var(--alerte); }
 .btn { width:100%; padding:13px; border:0; border-radius:10px; background:var(--accent); color:var(--accent-texte); font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; }
+.btn.doux { background:var(--accent-doux); color:var(--texte); font-size:14px; padding:11px; }
 .btn:hover { filter:brightness(1.08); }
-.btn[disabled] { opacity:.6; cursor:progress; }
+.btn[disabled] { opacity:.6; cursor:not-allowed; }
 .etat { font-size:13px; min-height:18px; margin-top:8px; color:var(--gris); }
 .etat.erreur { color:var(--alerte); }
 .etat.ok { color:var(--ok); }
+.facture { display:flex; flex-direction:column; gap:7px; }
+.fl { display:grid; grid-template-columns:92px minmax(0,1fr) auto; gap:8px; align-items:center; font-size:13px; }
+.fl .k { color:var(--gris); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+.fl .v { overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.fl button { border:1px solid var(--bord); background:var(--surface); color:var(--texte); border-radius:6px; padding:5px 9px; font-size:12px; cursor:pointer; font-family:inherit; }
+.fl button.copie { border-color:var(--ok); color:var(--ok); }
 .apercu { min-width:0; overflow-x:auto; }
 .feuille { background:#ffffff; color:#111111; border-radius:4px; padding:20mm; box-shadow:var(--papier-ombre); }
 
-/* Le contrat : même mise en page que contrat-oqora-modele-matisse.html, papier blanc dans les deux thèmes */
+/* Le contrat : même mise en page que le générateur d'origine, papier blanc dans les deux thèmes */
 .contrat { font-family:Arial, Helvetica, sans-serif; font-size:10.5pt; color:#111111; line-height:1.45; background:#ffffff; }
 .contrat h1 { color:#2b3a8f; font-size:26pt; margin:0 0 8pt; }
 .contrat h2 { color:#2b3a8f; font-size:15pt; margin:22pt 0 10pt; text-transform:uppercase; }
@@ -76,6 +87,7 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 .contrat .sign div { width:45%; }
 .contrat .vide { background:#fff0a8; }
 .contrat.export .vide { background:none; }
+.contrat .propose { background:#fff0a8; }
 .contrat .zone-sign { height:64px; padding-top:10px; box-sizing:border-box; }
 .contrat .balise { color:#ffffff; font-size:6px; line-height:6px; white-space:nowrap; }
 
@@ -93,18 +105,35 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
     <h1>Générateur de contrat Oqora</h1>
     <p class="sous">Remplis pendant l'appel. Le contrat se met à jour à droite.</p>
 
-    <div class="q"><label for="centre">Nom du centre</label><input type="text" id="centre"></div>
+    <div class="bloc-titre">La cliente</div>
+    <div class="q"><button type="button" class="btn doux" data-message="infos">Copier le message « ses infos »</button></div>
+    <div class="q"><label for="colle">Colle sa réponse</label>
+      <textarea id="colle" placeholder="Nom de la société, SIRET, e-mail, adresse : tel qu'elle te l'envoie"></textarea>
+      <div class="info" id="colleInfo">Le SIRET remplit tout seul la société, l'adresse du siège et la gérante, depuis le registre officiel.</div></div>
+    <div class="q"><label for="siret">SIRET</label><input type="text" id="siret" inputmode="numeric" placeholder="14 chiffres">
+      <div class="info" id="siretInfo" role="status"></div></div>
+    <div class="q"><label for="centre">Société (raison sociale)</label><input type="text" id="centre"></div>
     <div class="q"><div class="lab">Gérante</div>
       <div class="duo"><input type="text" id="prenom" placeholder="Prénom"><input type="text" id="nom" placeholder="Nom"></div></div>
-    <div class="q"><label for="adresse">Adresse du centre</label><input type="text" id="adresse"></div>
+    <div class="q"><label for="adresse">Adresse du siège</label><input type="text" id="adresse">
+      <div class="info alerte" id="adresseInfo" role="status" hidden></div></div>
     <div class="q"><label for="email">E-mail de la gérante</label><input type="email" id="email" placeholder="Pour l'envoi du contrat à signer">
       <div class="aide">Le contrat lui est envoyé à cette adresse.</div></div>
 
-    <div class="q"><div class="lab">Offre</div>
+    <div class="bloc-titre">L'offre</div>
+    <div class="q"><div class="lab">Formule</div>
       <div class="choix">
-        <label><input type="radio" name="offre" value="1"><span>Offre 1<small>elle appelle</small></span></label>
-        <label><input type="radio" name="offre" value="2" checked><span>Offre 2<small>on appelle</small></span></label>
+        <label><input type="radio" name="formule" value="Pub" checked><span>Pub</span></label>
+        <label><input type="radio" name="formule" value="Pub + Insta"><span>Pub + Insta<small>10 vidéos</small></span></label>
+        <label><input type="radio" name="formule" value="Complète"><span>Complète<small>30 vidéos</small></span></label>
       </div></div>
+
+    <div class="q"><div class="lab">Appels</div>
+      <div class="choix">
+        <label><input type="radio" name="offre" value="1" checked><span>Offre 1<small>elle appelle</small></span></label>
+        <label><input type="radio" name="offre" value="2"><span>Offre 2<small>on appelle</small></span></label>
+      </div>
+      <div class="info" id="appelsInfo" hidden>Offre 2 : à vendre seulement quand une personne est en place pour appeler.</div></div>
 
     <div class="q"><div class="lab">CA mensuel du centre</div>
       <div class="choix">
@@ -113,6 +142,15 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
         <label><input type="radio" name="taille" value="grand"><span>+ 30 k€<small id="px-grand"></small></span></label>
       </div>
       <div class="aide" id="pub"></div></div>
+
+    <div class="q"><label for="prix">Prix mensuel HT (€)</label><input type="number" id="prix" min="0" step="10">
+      <div class="aide" id="prixAide">Rempli d'après ta grille Notion. Modifiable.</div></div>
+
+    <div class="bloc-titre">Les options</div>
+    <div class="q"><div class="lab">Objectif de CA dans le contrat</div>
+      <div class="choix"><label><input type="radio" name="avecObjectif" value="oui"><span>Avec objectif</span></label><label><input type="radio" name="avecObjectif" value="non" checked><span>Sans objectif</span></label></div></div>
+    <div class="q"><div class="lab">Support 7j/7</div>
+      <div class="choix"><label><input type="radio" name="support" value="oui"><span>Avec</span></label><label><input type="radio" name="support" value="non" checked><span>Sans</span></label></div></div>
 
     <div class="q"><div class="lab">Durée</div>
       <div class="choix serre">
@@ -136,9 +174,6 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
       </div>
       <div class="aide">Sans garantie : les points 5.4 à 5.6 sont retirés du contrat.</div></div>
 
-    <div class="q"><label for="prix">Prix mensuel HT (€)</label><input type="number" id="prix" min="0" step="50">
-      <div class="aide">Rempli d'après la grille et le CA actuel. Modifiable.</div></div>
-
     <div class="q"><div class="lab">Paiement</div>
       <div class="choix">
         <label><input type="radio" name="paiement" value="une" checked><span>En une fois</span></label>
@@ -151,15 +186,14 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
       </div>
       <div class="aide" id="totalAide"></div></div>
 
-    <div class="q"><div class="lab">Objectif de CA mensuel</div>
+    <div class="q"><div class="lab" id="objectifTitre">CA actuel et objectif</div>
       <div class="duo"><input type="number" id="caActuel" min="0" step="100" placeholder="CA actuel (€)">
-        <div class="choix">
+        <div class="choix" id="multBloc">
           <label><input type="radio" name="mult" value="2" checked><span>× 2</span></label>
           <label><input type="radio" name="mult" value="3"><span>× 3</span></label>
         </div></div>
       <input type="number" id="objectif" min="0" step="100" placeholder="Objectif (€)" style="margin-top:8px">
-      <div class="aide">Calculé depuis son CA actuel. Modifiable. Apparaît sur la couverture et à l'article 1.</div></div>
-
+      <div class="aide" id="objectifAide">Calculé depuis son CA actuel. Modifiable. Apparaît sur la couverture et à l'article 1.</div></div>
 
     <div>
       <button type="button" class="btn" id="signer">Envoyer pour signature</button>
@@ -171,6 +205,33 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
       <div class="etat" id="etat" role="status"></div>
       <div class="aide">Pour garder une copie, ou l'envoyer autrement.</div>
     </div>
+
+    <div class="bloc-titre">La facture, à recopier dans Indy</div>
+    <div class="facture" id="facture">
+      <div class="fl"><span class="k">Client</span><span class="v" id="f-client"></span><button type="button" data-copie="f-client">Copier</button></div>
+      <div class="fl"><span class="k">Adresse</span><span class="v" id="f-adresse"></span><button type="button" data-copie="f-adresse">Copier</button></div>
+      <div class="fl"><span class="k">SIRET</span><span class="v" id="f-siret"></span><button type="button" data-copie="f-siret">Copier</button></div>
+      <div class="fl"><span class="k">E-mail</span><span class="v" id="f-email"></span><button type="button" data-copie="f-email">Copier</button></div>
+      <div class="fl"><span class="k">Désignation</span><span class="v" id="f-ligne"></span><button type="button" data-copie="f-ligne">Copier</button></div>
+      <div class="fl"><span class="k">Prix HT</span><span class="v" id="f-pu"></span><button type="button" data-copie="f-pu">Copier</button></div>
+      <div class="fl"><span class="k">TVA 20 %</span><span class="v" id="f-tva"></span><span></span></div>
+      <div class="fl"><span class="k">Total TTC</span><span class="v" id="f-ttc"></span><span></span></div>
+      <div class="fl"><span class="k">Échéance</span><span class="v">À réception : le paiement se demande au début du mois, jamais en fin de mois</span><button type="button" data-copie="f-echeance">Copier</button></div>
+      <span id="f-echeance" hidden data-brut="À réception"></span>
+      <div class="aide">Quantité 1. Indy numérote la facture.</div>
+    </div>
+
+    <div class="bloc-titre">Le virement</div>
+    <div class="q">
+      <button type="button" class="btn doux" data-message="rib">Copier le message avec le RIB</button>
+      <div class="info" id="ribInfo" role="status"></div></div>
+    <details class="q" id="ribBloc"><summary>Mon RIB</summary>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <input type="text" id="ribTitulaire" placeholder="Titulaire du compte" aria-label="Titulaire du compte" data-rib>
+        <input type="text" id="ribIban" placeholder="IBAN" aria-label="IBAN" data-rib>
+        <input type="text" id="ribBic" placeholder="BIC" aria-label="BIC" data-rib>
+        <div class="aide">À taper une seule fois. Le RIB reste dans ce navigateur : il n'est jamais envoyé ni publié.</div>
+      </div></details>
   </form>
 
   <main class="apercu"><div class="feuille"><div class="contrat" id="contrat"></div></div></main>
@@ -178,24 +239,32 @@ input:focus-visible, .choix input:focus-visible + span, .btn:focus-visible { out
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-// Grille validée par Jules le 28/09/2026 (prix fixe par mois, pub en plus)
-var GRILLE = {
-  petit: { 1: 1000, 2: 1700, pub: 20 },
-  moyen: { 1: 1500, 2: 2200, pub: 30 },
-  grand: { 1: 2500, 2: 3200, pub: 50 }
-};
+// Grille des offres validée par Jules le 18/11/2026, recopiée de Notion (base « Les offres ») par synchro_grille.py.
+var GRILLE = /* GRILLE-DEBUT */[{"offre":"Pub","formule":"Pub","appels":"Sans appels","taille":"Petit centre (5 à 10 k€)","prix":500,"pourcentage":"+ 10 %","ordre":1},{"offre":"Pub","formule":"Pub","appels":"Sans appels","taille":"Centre moyen (10 à 30 k€)","prix":600,"pourcentage":"+ 10 %","ordre":1},{"offre":"Pub","formule":"Pub","appels":"Sans appels","taille":"Gros centre (plus de 30 k€)","prix":700,"pourcentage":"+ 10 %","ordre":1},{"offre":"Pub + appels","formule":"Pub","appels":"Avec appels","taille":"Petit centre (5 à 10 k€)","prix":850,"pourcentage":"+ 10 %","ordre":2},{"offre":"Pub + appels","formule":"Pub","appels":"Avec appels","taille":"Centre moyen (10 à 30 k€)","prix":990,"pourcentage":"+ 10 %","ordre":2},{"offre":"Pub + appels","formule":"Pub","appels":"Avec appels","taille":"Gros centre (plus de 30 k€)","prix":1100,"pourcentage":"+ 10 %","ordre":2},{"offre":"Pub + Insta (10 vidéos)","formule":"Pub + Insta","appels":"Sans appels","taille":"Petit centre (5 à 10 k€)","prix":700,"pourcentage":"+ 10 %","ordre":3},{"offre":"Pub + Insta (10 vidéos)","formule":"Pub + Insta","appels":"Sans appels","taille":"Centre moyen (10 à 30 k€)","prix":900,"pourcentage":"+ 10 %","ordre":3},{"offre":"Pub + Insta (10 vidéos)","formule":"Pub + Insta","appels":"Sans appels","taille":"Gros centre (plus de 30 k€)","prix":1100,"pourcentage":"+ 10 %","ordre":3},{"offre":"Pub + Insta (10 vidéos) + appels","formule":"Pub + Insta","appels":"Avec appels","taille":"Petit centre (5 à 10 k€)","prix":1000,"pourcentage":"+ 10 %","ordre":4},{"offre":"Pub + Insta (10 vidéos) + appels","formule":"Pub + Insta","appels":"Avec appels","taille":"Centre moyen (10 à 30 k€)","prix":1200,"pourcentage":"+ 10 %","ordre":4},{"offre":"Pub + Insta (10 vidéos) + appels","formule":"Pub + Insta","appels":"Avec appels","taille":"Gros centre (plus de 30 k€)","prix":1500,"pourcentage":"+ 10 %","ordre":4},{"offre":"Complète sans appels (30 vidéos)","formule":"Complète","appels":"Sans appels","taille":"Petit centre (5 à 10 k€)","prix":1000,"pourcentage":"Aucun","ordre":5},{"offre":"Complète sans appels (30 vidéos)","formule":"Complète","appels":"Sans appels","taille":"Centre moyen (10 à 30 k€)","prix":1500,"pourcentage":"Aucun","ordre":5},{"offre":"Complète sans appels (30 vidéos)","formule":"Complète","appels":"Sans appels","taille":"Gros centre (plus de 30 k€)","prix":2500,"pourcentage":"Aucun","ordre":5},{"offre":"Complète avec appels (30 vidéos)","formule":"Complète","appels":"Avec appels","taille":"Petit centre (5 à 10 k€)","prix":1700,"pourcentage":"Aucun","ordre":6},{"offre":"Complète avec appels (30 vidéos)","formule":"Complète","appels":"Avec appels","taille":"Centre moyen (10 à 30 k€)","prix":2000,"pourcentage":"Aucun","ordre":6},{"offre":"Complète avec appels (30 vidéos)","formule":"Complète","appels":"Avec appels","taille":"Gros centre (plus de 30 k€)","prix":3200,"pourcentage":"Aucun","ordre":6}]/* GRILLE-FIN */;
+var TAILLES = { petit: "Petit centre (5 à 10 k€)", moyen: "Centre moyen (10 à 30 k€)", grand: "Gros centre (plus de 30 k€)" };
+var APPELS = { "1": "Sans appels", "2": "Avec appels" }; // Offre 1 = elle appelle, Offre 2 = on appelle (l'Offre 1 reste, Jules 19/10)
 var LETTRES = { 1: "un", 2: "deux", 3: "trois", 4: "quatre" };
+
+var RELECTURE = /[?&]validation=1(&|$)/.test(location.search);
 
 var $ = function (id) { return document.getElementById(id); };
 function val(name) { var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : ""; }
-// Durée en mois : un des boutons, ou « Autre » = le nombre tapé par Jules (ex. 1 mois de test, 16/10)
+function ligneGrille(f, o, t) {
+  for (var i = 0; i < GRILLE.length; i++) {
+    var l = GRILLE[i];
+    if (l.formule === f && l.appels === APPELS[o] && l.taille === TAILLES[t]) return l;
+  }
+  return null;
+}
+// Durée en mois : un des boutons, ou « Autre » = le nombre tapé (ex. 1 mois de test, 16/10)
 // « Mois par mois » : sans engagement, renouvelé chaque mois, sans garantie ; le contrat compte 1 mois (Jules, 19/10)
 function sansEngagement() { return val("duree") === "mensuel"; }
-// Article 2, aussi envoyé tel quel au CRM (champ « Contrat - Article 2 », modèle « Contrat Oqora sans garantie »)
+// Pub et Pub + Insta : « prestation » ; Complète : « accompagnement ». Sans engagement : durée indéterminée (texte signé le 23/11).
+function estComplete() { return val("formule") === "Complète"; }
 function texteArticle2(d) {
-  return sansEngagement()
-    ? "La durée de l'accompagnement est d'un (1) mois, renouvelé chaque mois à compter de la date de signature de ce contrat. Il n'y a pas d'engagement de durée : le Client peut arrêter l'accompagnement à tout moment. Tout mois commencé est dû en entier : l'accompagnement continue jusqu'à la fin de ce mois, puis s'arrête."
-    : "La durée de l'accompagnement est de " + d + " mois, à compter de la date de signature de ce contrat.";
+  var le = estComplete() ? "l'accompagnement" : "la prestation";
+  if (sansEngagement()) return (estComplete() ? "L'accompagnement" : "La prestation") + " commence à la date de signature de ce contrat, pour une durée indéterminée. Il n'y a pas d'engagement de durée : le Client peut arrêter " + le + " à tout moment. Tout mois commencé est dû en entier : " + le + " continue jusqu'à la fin de ce mois, puis s'arrête.";
+  return "La durée de " + le + " est de " + d + " mois, à compter de la date de signature de ce contrat.";
 }
 function duree() {
   if (sansEngagement()) return 1;
@@ -203,25 +272,28 @@ function duree() {
   var n = parseInt($("dureeAutre").value, 10);
   return n > 0 ? n : 1;
 }
-// Garantie : ×2 en temps normal ; sur un contrat d'1 mois, un retour sur investissement (×1) seulement (Jules, 16/10)
-// « Sans garantie » (bouton) : 5.4 à 5.6 disparaissent, 5.1 à 5.3 restent (Jules, 16/10)
+// Garantie : ×2 en temps normal ; sur un contrat d'1 mois, ×1 seulement (Jules, 16/10)
 function texteGarantie(d) { return val("garantie") === "sans" ? "Sans garantie" : d === 1 ? "une fois (×1)" : "deux fois (×2)"; }
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-function euros(n) { return Number(n).toLocaleString("fr-FR").replace(/ /g, " ") + "€"; }
+function euros(n) { return Number(n).toLocaleString("fr-FR").replace(/ /g, " ") + "€"; }
+function eurosCentimes(n) { return Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, " ") + " €"; }
 function champ(v, repli) { return v ? esc(v) : '<span class="vide">' + repli + "</span>"; }
 
 function majPrix() {
-  var o = val("offre"), t = val("taille");
-  ["petit", "moyen", "grand"].forEach(function (k) { $("px-" + k).textContent = euros(GRILLE[k][o]); });
-  $("prix").value = GRILLE[t][o];
+  var f = val("formule"), o = val("offre"), t = val("taille");
+  ["petit", "moyen", "grand"].forEach(function (k) { var l = ligneGrille(f, o, k); $("px-" + k).textContent = l ? euros(l.prix) : ""; });
+  var l = ligneGrille(f, o, t);
+  $("prix").value = l ? l.prix : "";
   var ca = parseFloat($("caActuel").value);
-  $("pub").textContent = (ca > 0 && ca < 5000 ? "Sous le minimum de 5 000 €/mois : on ne prend pas ce centre. " : "") + "Pub conseillée : " + GRILLE[t].pub + " €/jour, payée par elle à Meta.";
+  $("pub").textContent = (ca > 0 && ca < 5000 ? "Sous le minimum de 5 000 €/mois : on ne prend pas ce centre. " : "") + "Pub payée par elle à Meta : 20 € par jour minimum.";
+  $("prixAide").textContent = "Rempli d'après ta grille Notion" + ". Modifiable.";
+  $("appelsInfo").hidden = o !== "2";
 }
 function majObjectif() {
   var ca = parseFloat($("caActuel").value);
   if (ca > 0) $("objectif").value = Math.round(ca * parseInt(val("mult"), 10));
 }
-// La tranche de prix suit le CA actuel : 5-10 k€, 10-30 k€, plus de 30 k€ (décision du 28/09)
+// La tranche de prix suit le CA actuel : 5-10 k€, 10-30 k€, plus de 30 k€
 function majTranche() {
   var ca = parseFloat($("caActuel").value);
   if (!(ca > 0)) return;
@@ -230,15 +302,13 @@ function majTranche() {
   majPrix();
 }
 
-// Mode de paiement : en une fois, en 2 ou 3 fois, ou chaque mois. Le total = prix mensuel × durée, sans remise (Jules, 03/10).
-// Les trois lignes du bloc paiement, en texte brut (servent au contrat affiché ET à l'envoi vers le CRM)
+// Paiement : en une fois, en 2 ou 3 fois, ou chaque mois. Total = prix mensuel × durée, sans remise (Jules, 03/10).
 function paiementTexte(prix, d) {
   var mode = val("paiement"), p = parseFloat(prix), total = p > 0 ? p * d : 0;
   var tot = total ? euros(total) : "[__] €";
   if (mode === "mois") return { titre: "PAIEMENT MENSUEL", montant: (prix ? euros(prix) : "[__] €") + " HT par mois", detail: sansEngagement() ? "Paiement mensuel, sans engagement de durée" : "Paiement mensuel sur une période de " + d + " mois" };
   if (mode === "plusieurs") {
     var n = parseInt(val("nbFois"), 10), part = total ? Math.round(total / n * 100) / 100 : 0;
-    // En 2 fois : le 2e paiement tombe 15 jours après le jour de l'envoi (= jour de l'appel), date calculée toute seule (Jules, 16/10)
     var dates = "";
     if (n === 2) {
       var j15 = new Date(); j15.setDate(j15.getDate() + 15);
@@ -254,7 +324,7 @@ function blocPaiement(prix, d) {
   return '<div class="pay"><div class="t">' + t.titre + "</div><div><b>" + m + "</b></div><div>" + t.detail.replace("[__] €", '<span class="vide">[__] €</span>') + "</div></div>";
 }
 function majPaiement() {
-  // Mois par mois : paiement chaque mois et sans garantie, imposés (Jules, 19/10 : « quand c'est mois par mois, on peut pas garantir »)
+  // Mois par mois : paiement chaque mois et sans garantie, imposés (Jules, 19/10)
   var se = sansEngagement();
   document.querySelector('input[name="garantie"][value="avec"]').disabled = se;
   document.querySelectorAll('input[name="paiement"]').forEach(function (e) { e.disabled = se && e.value !== "mois"; });
@@ -269,64 +339,86 @@ function majPaiement() {
   $("totalAide").textContent = !(p > 0) ? "" : se ? euros(p) + " HT par mois, sans engagement." : "Total : " + euros(p * d) + " HT sur " + d + " mois (même prix qu'au mois).";
 }
 
+// ---------------------------------------------------------------- le contrat
+// Texte de base du générateur d'origine. Par formule, on retire ce qui ne sert pas (comme pour le contrat pub seule du 20/11),
+// sans rien ajouter qui n'ait été validé.
+// Pub et Pub + Insta : comme ce contrat (changements dictés par Jules) : la SASU comme Prestataire, 40 € au 9.2,
+// « le Client appelle lui-même » en Offre 1, sans renvoi à l'Annexe 1 (5.1) ni phrase sur le choix de la modalité.
+// Complète : texte d'origine (Annexe 1, phrase sur la modalité), avec la SASU et les 40 € comme partout.
+var DEBUT_MOIS = "Le paiement est demandé au début de chaque mois, jamais en fin de mois.";
+var SASU = "Oqora, SASU au capital de 5 000 €<br>6 Passage Alexandrine, 75011 Paris<br>SIREN 130 092 422 RCS Paris<br>représentée par Jules Couapel";
+var ITEMS_ACQUISITION = ["la création de la stratégie ads (contenus, positionnement, campagnes) ;", "la création des publicités et des créas ;", "la création et la gestion des campagnes publicitaires Meta ;", "la gestion journalière des budgets Meta ;", "l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;", "la création d'une landing page pour récupérer les informations des prospects ;", "la mise en place du formulaire et des outils CRM de gestion des leads ;", "la mise en place d'un outil de suivi des performances en direct."];
+var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>";
+var RESSOURCES = "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu) et des scripts.</p>";
 function rendre(opts) {
   opts = opts || {};
-  var o = val("offre"), d = duree();
+  var o = val("offre"), f = val("formule"), d = duree();
+  var complete = f === "Complète", insta = f === "Pub + Insta";
   var avecGarantie = val("garantie") !== "sans";
   var evalMois = Math.min(4, d);
   var gerante = [$("prenom").value.trim(), $("nom").value.trim()].filter(Boolean).join(" ");
   var centre = $("centre").value.trim(), adresse = $("adresse").value.trim();
   var prix = $("prix").value, objectif = $("objectif").value;
-  var dateTxt = opts.date || "___ / ___ / ______"; // à l'envoi : la date du jour, comme le faisait le modèle GHL
+  var dateTxt = opts.date || "___ / ___ / ______";
   var caAct = $("caActuel").value;
   var couverture = (caAct ? "De " + euros(caAct) + " à " : "Objectif ") + champ(objectif ? euros(objectif) : "", "[__] €") + "/mois";
-  var client = [champ(centre, "[Nom du centre]"), adresse ? esc(adresse) : "", champ(gerante, "[Nom de la gérante]")].filter(Boolean).join(", ");
+  var client = [champ(centre, "[Société]"), adresse ? esc(adresse) : "", champ(gerante, "[Nom de la gérante]")].filter(Boolean).join(", ");
 
   var setter = o === "2"
     ? "<h3>Opératrice Dédiée</h3><p><b>Une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme.</b></p>"
     : "";
+  var items = ITEMS_ACQUISITION.slice();
+  // Pub + Insta : la ligne du tournage d'origine (« le montage des publicités vidéo et de 30 vidéos… »), avec 10 vidéos
+  if (!complete) items.splice(2, 0, "le montage des publicités vidéo" + (insta ? " et de 10 vidéos pour les réseaux sociaux du Client" : "") + " ;"); // sans tournage, le montage des pubs reste (contrat du 20/11)
+  var acquisition = "<h3>Acquisition</h3><p>Le Prestataire assurera :</p><ul>" + items.map(function (i) { return "<li>" + i + "</li>"; }).join("") + "</ul>" +
+    (o === "1" && !complete ? "<p>Le Client appelle lui-même chaque demande, prend les rendez-vous dans l'agenda du centre et les confirme.</p>" : "");
+  var videos = complete ? TOURNAGE_COMPLET : "";
+  var ressources = complete ? RESSOURCES : "";
+  var avecObjectif = val("avecObjectif") === "oui";
   var condRappel = o === "1" ? "<li>Le Client a rappelé toutes ses demandes chaque jour, sans exception</li>" : "";
 
   $("contrat").innerHTML =
     '<div class="cover"><h1>CONTRAT OQORA</h1>' +
     '<div class="sub">Contrat de Services d\'Acquisition Clients</div>' +
     '<div class="theme">Centres Esthétiques</div>' +
-    '<div class="prog">Programme Complet · ' + d + " Mois · " + couverture + "</div>" +
+    (function () { var l = [complete ? "Programme Complet" : "", complete && !sansEngagement() ? d + " Mois" : "", avecObjectif ? couverture : ""].filter(Boolean).join(" · "); return l ? '<div class="prog">' + l + "</div>" : ""; })() +
     '<div class="org">Oqora</div><div class="who">Jules Couapel · Paris</div></div>' +
 
     '<h2 class="brk">Parties contractantes</h2><table class="parties">' +
-    '<tr><td><b>Prestataire</b></td><td>Jules Couapel<br>Oqora<br>6 Passage Alexandrine, Paris<br>(ci-après dénommé "le Prestataire")</td></tr>' +
+    '<tr><td><b>Prestataire</b></td><td>' + SASU + '<br>(ci-après dénommé "le Prestataire")</td></tr>' +
     "<tr><td><b>Client</b></td><td>" + client + '<br>(ci-après dénommé "le Client")</td></tr></table>' +
 
     "<h2>Article 1 : Objet du contrat</h2>" +
-    "<p>Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à atteindre un chiffre d'affaires mensuel de " +
-    champ(objectif ? euros(objectif) : "", "[__] €") + ' en construisant son "écosystème d\'acquisition" sur l\'accompagnement de ' + d + " mois.</p>" +
+    (avecObjectif
+      ? "<p>Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à atteindre un chiffre d'affaires mensuel de " +
+        champ(objectif ? euros(objectif) : "", "[__] €") + ' en construisant son "écosystème d\'acquisition"' + (sansEngagement() ? "" : " sur " + (complete ? "l'accompagnement" : "la prestation") + " de " + d + " mois") + ".</p>"
+      : '<p>Le Prestataire s\'engage à fournir des services de consultation et d\'acquisition pour aider le Client à construire son "écosystème d\'acquisition".</p>') +
 
-    "<h2>Article 2 : Durée de l'accompagnement</h2>" +
+    "<h2>Article 2 : Durée " + (complete ? "de l'accompagnement" : "de la prestation") + "</h2>" +
     "<p>" + texteArticle2(d) + "</p>" +
 
     '<h2 class="brk">Article 3 : Services fournis</h2>' +
-    "<h3>Support 7j/7</h3><p>Le Prestataire fournira un support continu 7 jours sur 7.</p>" +
-    setter +
-    "<h3>Acquisition</h3><p>Le Prestataire assurera :</p><ul><li>la création de la stratégie ads (contenus, positionnement, campagnes) ;</li><li>la création des publicités et des créas ;</li><li>la création et la gestion des campagnes publicitaires Meta ;</li><li>la gestion journalière des budgets Meta ;</li><li>l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;</li><li>la création d'une landing page pour récupérer les informations des prospects ;</li><li>la mise en place du formulaire et des outils CRM de gestion des leads ;</li><li>la mise en place d'un outil de suivi des performances en direct.</li></ul>" +
-    "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>" +
-    "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu) et des scripts.</p>" +
+    (val("support") === "oui" ? "<h3>Support 7j/7</h3><p>Le Prestataire fournira un support continu 7 jours sur 7.</p>" : "") +
+    setter + acquisition + videos + ressources +
 
     '<h2 class="brk">Article 4 : Modalités de paiement</h2>' +
     "<p>Le Client reconnaît et accepte l'obligation légale de procéder au paiement des services fournis par le Prestataire selon les modalités suivantes :</p>" +
     blocPaiement(prix, d) +
     "<p>Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.</p>" +
-    "<p>Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
+    // Règle de Jules (21/11, 20 h 30) : « Le paiement, on le demande toujours au début du mois. Jamais en fin de mois. »
+    // Même phrase que dans le contrat du 20/11 ; seulement en paiement chaque mois (en une ou plusieurs fois, la date est déjà écrite).
+    (val("paiement") === "mois" ? "<p>" + DEBUT_MOIS + "</p>" : "") +
+    "<p>" + (complete ? "Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>" : "") + "Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
 
     "<h2>Article 5 : " + (avecGarantie ? "Garantie de résultat" : "Engagement et suivi des résultats") + "</h2>" +
-    "<h3>5.1 Engagement</h3><p>Le Prestataire s'engage à fournir ses services de manière à atteindre les résultats ou objectifs définis conjointement avec le Client dans l'Annexe 1.</p>" +
+    "<h3>5.1 Engagement</h3><p>Le Prestataire s'engage à fournir ses services de manière à atteindre les résultats ou objectifs définis conjointement avec le Client" + (complete ? " dans l'Annexe 1" : "") + ".</p>" +
     "<h3>5.2 Période d'Évaluation</h3><p>Au terme d'une période de " + LETTRES[evalMois] + " (" + evalMois + ") mois à compter de la date d'effet du présent contrat, le Prestataire et le Client évalueront conjointement les performances réalisées.</p>" +
     "<h3>5.3 Bonne Foi et Collaboration</h3><p>Le Client reconnaît que le Prestataire n'a pas l'intention de tendre des pièges délibérés ni d'annuler le contrat en cas d'erreur du Client. Les erreurs sont considérées comme des opportunités d'apprentissage et de correction mutuelle. Pour éviter tout malentendu, les Parties conviennent de travailler de bonne foi pour résoudre les erreurs et garantir le succès de la stratégie, dans le respect des termes du contrat initial.</p>" +
     (avecGarantie ? "<h3>5.4 Non-Réalisation des Objectifs</h3><p>Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :</p>" +
     '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à ' + texteGarantie(d) + ' l\'investissement initial du Client dans Oqora (hors budget publicitaire)</p>' +
     "<h3>5.5 Modalités de Mise en Œuvre</h3><p>Les modalités précises de mise en œuvre de cette garantie, notamment la définition des objectifs, la mesure de la performance et le calcul du retour sur investissement, sont détaillées dans l'Article 3.</p>" +
     "<h3>5.6 Conditions et exclusions</h3><p>La garantie ne s'applique que si le Client a respecté toutes les conditions suivantes. Si une seule condition n'est pas respectée, la garantie est annulée :</p>" +
-    "<ul><li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li><li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours</li>" + condRappel + "</ul>" +
+    "<ul>" + (complete ? "<li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li>" : "") + "<li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours</li>" + condRappel + "</ul>" +
     "<p>Cette garantie ne s'appliquera pas non plus dans les situations où les manquements à la réalisation des objectifs sont imputables à :</p>" +
     "<ul><li>Des circonstances indépendantes de la volonté du Prestataire</li><li>Des actes du Client</li><li>Des catastrophes naturelles</li><li>Des actes de tiers</li><li>Des décisions des plateformes publicitaires et des réseaux sociaux, notamment Meta (restriction, suspension ou blocage d'un compte, refus d'une publicité, changement de leurs règles ou de leur fonctionnement)</li><li>Toute autre circonstance échappant au contrôle raisonnable du Prestataire</li></ul>" : "") +
 
@@ -335,11 +427,11 @@ function rendre(opts) {
     "<h2>Article 7 : Loi applicable et juridiction</h2><p>Ce contrat est soumis aux lois françaises et à la juridiction des tribunaux de Paris.</p>" +
     "<h2>Article 8 : Onboarding</h2>" +
     "<h3>8.1 Document d'Onboarding</h3><p>Une fois le paiement réalisé, le Client recevra un document d'onboarding de la part du Prestataire.</p>" +
-    "<h3>8.2 Durée de l'Onboarding</h3><p>La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client.</p>" +
-    "<h3>8.3 Accès à l'Espace Client</h3><p>Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera l'accompagnement selon les termes de ce contrat.</p>" +
+    "<h3>8.2 Durée de l'Onboarding</h3><p>" + (complete ? "La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client." : "La phase d'onboarding comprend l'appel d'intégration.") + "</p>" +
+    "<h3>8.3 Accès à l'Espace Client</h3><p>Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera " + (complete ? "l'accompagnement" : "la prestation") + " selon les termes de ce contrat.</p>" +
     "<h2>Article 9 : Pénalités de retard</h2>" +
     "<h3>9.1 Déclenchement des Pénalités</h3><p>Toute somme non payée à son échéance donnera lieu au paiement par le Client de pénalités de retard, sans qu'un rappel soit nécessaire.</p>" +
-    "<h3>9.2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de 500€, sauf justification de frais supérieurs.</p>" +
+    "<h3>9.2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de " + "40€" + ", sauf justification de frais supérieurs.</p>" +
     "<h3>9.3 Conséquences sur les Services</h3><p>En cas de retard de paiement de plus de 10 jours, le Prestataire se réserve le droit de :</p>" +
     "<ul><li>Suspendre l'exécution de ses obligations</li><li>Suspendre ou annuler la fourniture des services</li><li>Résilier le contrat</li></ul><p>Sans que le Client puisse prétendre à une quelconque indemnité.</p>" +
     "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
@@ -347,23 +439,187 @@ function rendre(opts) {
     '<p style="text-align:center;margin-top:36pt">Fait en deux exemplaires originaux<br><br>à Paris, le ' + dateTxt + "</p>" +
     '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>' + (opts.signature ? '<div class="zone-sign"></div>' : "") + '_______________________</div>' +
     "<div>Pour le Client<br><b>" + champ(gerante, "[Nom]") + "</b><br>" + (centre ? esc(centre) : "") + "<br><br>Signature :<br>" + (opts.signature ? '<div class="zone-sign"><span class="balise">' + BALISE + "</span></div>" : "") + "_______________________</div></div>";
-
 }
+
+// ---------------------------------------------------------------- la cliente : texte collé, SIRET, registre officiel
+var NATURES = { "1000": "Entrepreneur individuel", "5498": "EURL", "5499": "SARL", "5710": "SAS", "5720": "SASU", "5202": "SNC", "6540": "SCI", "5485": "SELARL", "5785": "SELAS" };
+function chiffres(s) { return String(s || "").replace(/\D/g, ""); }
+function trouverDans(texte) {
+  var r = {}, m;
+  m = texte.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i); if (m) r.email = m[0];
+  (texte.match(/(?:\d[ . ]?){13}\d/g) || []).some(function (s) { var c = chiffres(s); if (c.length === 14) { r.siret = c; return true; } return false; });
+  if (!r.siret) { m = texte.match(/(^|\D)((?:\d[ . ]?){8}\d)(?!\d)/); if (m && chiffres(m[2]).length === 9) r.siren = chiffres(m[2]); }
+  m = texte.match(/(?:^|[\s,])(\d{5})[  ]+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]{1,40})/); if (m) { r.cp = m[1]; r.ville = m[2].trim(); }
+  return r;
+}
+var PETITS = { de: 1, du: 1, des: 1, la: 1, le: 1, les: 1, et: 1, en: 1, sur: 1, sous: 1, aux: 1, au: 1, "d'": 1, "l'": 1 };
+var VOIES = { rue: 1, avenue: 1, av: 1, boulevard: 1, bd: 1, place: 1, chemin: 1, allee: 1, impasse: 1, route: 1, quai: 1, cours: 1, square: 1, passage: 1, rte: 1, chem: 1, imp: 1, pl: 1 };
+function casse(mot, premier) {
+  return mot.toLowerCase().split("-").map(function (p, i) {
+    if ((!premier || i > 0) && PETITS[p]) return p;
+    return p.replace(/^(d'|l')?(.)/, function (x, a, b) { return (a || "") + b.toUpperCase(); });
+  }).join("-");
+}
+function adresseLisible(siege) {
+  var brut = String(siege.adresse || "").trim(), cp = siege.code_postal || "";
+  var i = cp ? brut.lastIndexOf(cp) : -1;
+  var rue = (i > 0 ? brut.slice(0, i) : brut).trim(), ville = i > 0 ? brut.slice(i + cp.length).trim() : "";
+  rue = rue.split(/\s+/).map(function (m, k) { var b = m.toLowerCase(); return VOIES[b] ? b : casse(m, k === 0); }).join(" ");
+  ville = ville.split(/\s+/).map(function (m, k) { return casse(m, k === 0); }).join(" ");
+  return rue + (cp ? ", " + cp + " " + ville : "");
+}
+function info(id, msg, type) { var e = $(id); e.textContent = msg; e.className = "info" + (type ? " " + type : ""); }
+var derniereRecherche = "", ecritAdresse = null;
+async function chercherRegistre(numero) {
+  if (!numero || numero === derniereRecherche) return;
+  derniereRecherche = numero;
+  info("siretInfo", "Recherche dans le registre officiel…");
+  try {
+    var r = await fetch("https://recherche-entreprises.api.gouv.fr/search?q=" + numero + "&per_page=1");
+    if (!r.ok) throw new Error(String(r.status));
+    var d = await r.json(), e = d.results && d.results[0];
+    var siretOk = e && (numero.length === 9 ? e.siren === numero : (e.siege && e.siege.siret === numero) || (e.matching_etablissements || []).some(function (x) { return x.siret === numero; }));
+    if (!siretOk) { info("siretInfo", "Introuvable dans le registre officiel : vérifie le numéro avec elle.", "alerte"); return; }
+    $("centre").value = e.nom_raison_sociale || e.nom_complet || "";
+    if (e.siege) $("adresse").value = adresseLisible(e.siege);
+    var dir = (e.dirigeants || []).filter(function (x) { return x.type_dirigeant === "personne physique" && x.nom; })[0];
+    if (dir) {
+      $("prenom").value = casse(String(dir.prenoms || "").split(/\s+/)[0] || "", true);
+      $("nom").value = casse(dir.nom, true);
+    }
+    if (numero.length === 9 && e.siege) $("siret").value = e.siege.siret;
+    var nature = NATURES[e.nature_juridique] || "";
+    var etat = e.etat_administratif === "A" ? "en activité" : "ATTENTION : entreprise fermée au registre";
+    info("siretInfo", "Registre officiel : " + [e.nom_complet, nature, etat].filter(Boolean).join(" · ") + (dir ? " · dirigeant(e) : " + [dir.prenoms, dir.nom].join(" ") : ""), e.etat_administratif === "A" ? "ok" : "alerte");
+    verifierAdresse(e.siege);
+    toutMettreAJour();
+  } catch (err) {
+    derniereRecherche = "";
+    info("siretInfo", "Le registre officiel ne répond pas. Remplis à la main, ou réessaie dans un instant.", "alerte");
+  }
+}
+// L'adresse écrite par la cliente n'est pas toujours celle de son siège (vu le 21/11) : le contrat prend le siège.
+function verifierAdresse(siege) {
+  var a = $("adresseInfo");
+  if (!ecritAdresse || !siege || !siege.code_postal || ecritAdresse.cp === siege.code_postal) { a.hidden = true; return; }
+  a.hidden = false;
+  var ville = function (v) { return String(v || "").split(/\s+/).map(function (m, k) { return casse(m, k === 0); }).join(" "); };
+  a.textContent = "Elle a écrit " + ecritAdresse.cp + " " + ville(ecritAdresse.ville) + ", mais son siège au registre est à " + siege.code_postal + " " + ville(siege.libelle_commune) + ". Le contrat et la facture prennent l'adresse du siège : vérifie avec elle.";
+}
+function lireTexteColle() {
+  var t = $("colle").value, r = trouverDans(t);
+  if (r.email && !$("email").value.trim()) $("email").value = r.email;
+  ecritAdresse = r.cp ? { cp: r.cp, ville: r.ville } : null;
+  var numero = r.siret || r.siren || "";
+  if (numero) { $("siret").value = numero; chercherRegistre(numero); }
+  info("colleInfo", t.trim() ? "Trouvé : " + [r.email ? "e-mail" : "", r.siret ? "SIRET" : r.siren ? "SIREN" : "", r.cp ? "adresse " + r.cp : ""].filter(Boolean).join(", ") + (numero || r.email ? "." : " rien pour l'instant (il faut au moins le SIRET).") : "Le SIRET remplit tout seul la société, l'adresse du siège et la gérante, depuis le registre officiel.");
+  toutMettreAJour();
+}
+var minuteur = null;
+$("colle").addEventListener("input", function () { clearTimeout(minuteur); minuteur = setTimeout(lireTexteColle, 400); });
+$("siret").addEventListener("input", function () {
+  var c = chiffres(this.value);
+  if (c.length === 14 || c.length === 9) chercherRegistre(c);
+});
+
+// ---------------------------------------------------------------- la facture (à recopier dans Indy : pas d'accès à Indy depuis l'extérieur)
+function majFacture() {
+  var d = duree(), p = parseFloat($("prix").value) || 0, mode = val("paiement");
+  var l = ligneGrille(val("formule"), val("offre"), val("taille")), nomOffre = l ? l.offre : val("formule");
+  var ht, quoi;
+  if (mode === "mois") { ht = p; quoi = sansEngagement() ? "premier mois, à compter de la signature du contrat" : "premier mois sur " + d + ", à compter de la signature du contrat"; }
+  else if (mode === "plusieurs") { var n = parseInt(val("nbFois"), 10); ht = Math.round(p * d / n * 100) / 100; quoi = "paiement 1 sur " + n + ", accompagnement de " + d + " mois"; }
+  else { ht = p * d; quoi = "accompagnement de " + d + " mois, à compter de la signature du contrat"; }
+  var tva = Math.round(ht * 20) / 100, ttc = Math.round((ht + tva) * 100) / 100;
+  var s = chiffres($("siret").value);
+  var vals = {
+    "f-client": $("centre").value.trim(), "f-adresse": $("adresse").value.trim(),
+    "f-siret": s.length === 14 ? s.replace(/^(\d{3})(\d{3})(\d{3})(\d{5})$/, "$1 $2 $3 $4") : s,
+    "f-email": $("email").value.trim(), "f-ligne": "Oqora, " + nomOffre + " : " + quoi,
+    "f-pu": p ? String(ht).replace(".", ",") : "", "f-tva": p ? eurosCentimes(tva) : "", "f-ttc": p ? eurosCentimes(ttc) : ""
+  };
+  Object.keys(vals).forEach(function (k) { $(k).textContent = k === "f-pu" && p ? eurosCentimes(ht) : vals[k]; $(k).dataset.brut = vals[k]; });
+}
+document.querySelectorAll("[data-copie]").forEach(function (b) {
+  b.addEventListener("click", async function () {
+    var v = $(b.dataset.copie).dataset.brut || "";
+    if (!v) return;
+    try { await navigator.clipboard.writeText(v); b.textContent = "Copié"; b.classList.add("copie"); setTimeout(function () { b.textContent = "Copier"; b.classList.remove("copie"); }, 1500); }
+    catch (e) { b.textContent = "Sélectionne"; }
+  });
+});
+
+// ---------------------------------------------------------------- les messages à copier (WhatsApp)
+// « ses infos » : texte exact de la page Notion Onboarding de Jules (25/11). « RIB » : proposé.
+var MESSAGE_INFOS = "Pour vous envoyer le contrat et la facture à votre nom, j'ai besoin de :\n\n- Nom de l'entreprise\n- Adresse complète de l'entreprise\n- Prénom + Nom\n- SIRET\n- Adresse e-mail";
+function ibanValide(s) {
+  var i = s.replace(/\s/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(i) || (i.slice(0, 2) === "FR" && i.length !== 27)) return false;
+  var n = (i.slice(4) + i.slice(0, 4)).replace(/[A-Z]/g, function (c) { return c.charCodeAt(0) - 55; }), r = 0;
+  for (var k = 0; k < n.length; k++) r = (r * 10 + +n[k]) % 97;
+  return r === 1;
+}
+function messageRib() {
+  var iban = $("ribIban").value.replace(/\s/g, "").toUpperCase().replace(/(.{4})(?=.)/g, "$1 ");
+  return "Voici votre facture, et le RIB pour le virement :\n\nTitulaire : " + $("ribTitulaire").value.trim() + "\nIBAN : " + iban +
+    ($("ribBic").value.trim() ? "\nBIC : " + $("ribBic").value.trim().toUpperCase() : "") + "\nMontant : " + $("f-ttc").textContent + " TTC\nRéférence : " + $("centre").value.trim() +
+    "\n\nEnvoyez-moi une capture d'écran du virement quand c'est fait.";
+}
+document.querySelectorAll("[data-rib]").forEach(function (e) {
+  try { e.value = localStorage.getItem("oqora-" + e.id) || ""; } catch (x) {}
+  e.addEventListener("input", function () { try { localStorage.setItem("oqora-" + e.id, e.value); } catch (x) {} info("ribInfo", ""); });
+});
+document.querySelectorAll("[data-message]").forEach(function (b) {
+  var libelle = b.textContent;
+  b.addEventListener("click", async function () {
+    var m = MESSAGE_INFOS;
+    if (b.dataset.message === "rib") {
+      var manque = !$("ribTitulaire").value.trim() || !$("ribIban").value.trim() ? "Tape d'abord ton RIB, une seule fois." : !ibanValide($("ribIban").value) ? "IBAN faux : vérifie les chiffres." : !$("centre").value.trim() || !(parseFloat($("prix").value) > 0) ? "Il manque la société ou le prix." : "";
+      if (manque) { if (/RIB|IBAN/.test(manque)) $("ribBloc").open = true; info("ribInfo", manque, "alerte"); return; }
+      info("ribInfo", ""); m = messageRib();
+    }
+    try { await navigator.clipboard.writeText(m); b.textContent = "Copié"; setTimeout(function () { b.textContent = libelle; }, 1500); }
+    catch (x) { info("ribInfo", "La copie n'a pas marché.", "alerte"); }
+  });
+});
 
 function manquants() {
   var m = [];
-  if (!$("centre").value.trim()) m.push("nom du centre");
+  if (!$("centre").value.trim()) m.push("société");
   if (!$("prenom").value.trim() || !$("nom").value.trim()) m.push("prénom et nom de la gérante");
   if (!$("prix").value) m.push("prix");
-  if (!$("objectif").value) m.push("objectif de CA");
+  if (val("avecObjectif") === "oui" && !$("objectif").value) m.push("objectif de CA");
   return m;
 }
+// false : essai, la fonction n'accepte que les adresses de Jules
+var ENVOI_OUVERT = true;
+function blocage() {
+  if (RELECTURE) return "Page de relecture : l'envoi est coupé.";
+  return "";
+}
+function toutMettreAJour() {
+  var avecObj = val("avecObjectif") === "oui";
+  $("multBloc").hidden = !avecObj; $("objectif").hidden = !avecObj;
+  $("objectifTitre").textContent = avecObj ? "CA actuel et objectif" : "CA actuel";
+  $("objectifAide").textContent = avecObj ? "Objectif calculé depuis son CA actuel. Modifiable." : "Sert à choisir la taille du centre.";
+  
+  majPaiement(); rendre(); majFacture();
+  var b = blocage(); $("signer").disabled = !!b; if (b) etatSigner(b, "erreur"); else if ($("etatSigner").className.indexOf("erreur") > -1) etatSigner("");
+}
 
-document.querySelectorAll('input[name="offre"], input[name="taille"]').forEach(function (e) { e.addEventListener("change", function () { majPrix(); rendre(); }); });
-document.querySelectorAll('input[name="mult"]').forEach(function (e) { e.addEventListener("change", function () { majObjectif(); rendre(); }); });
-$("caActuel").addEventListener("input", function () { majObjectif(); majTranche(); rendre(); });
-$("quiz").addEventListener("input", function () { majPaiement(); rendre(); });
-$("quiz").addEventListener("change", function () { majPaiement(); rendre(); });
+// Réglages de départ d'une formule (tout reste modifiable) : Pub et Pub + Insta comme le contrat signé le 23/11, Complète comme l'offre 2.0
+function cocher(nom, v) { document.querySelector('input[name="' + nom + '"][value="' + v + '"]').checked = true; }
+function departFormule() {
+  var c = estComplete();
+  cocher("garantie", c ? "avec" : "sans"); cocher("duree", c ? "3" : "mensuel"); cocher("paiement", "mois"); cocher("support", c ? "oui" : "non");
+}
+document.querySelectorAll('input[name="formule"]').forEach(function (e) { e.addEventListener("change", departFormule); });
+document.querySelectorAll('input[name="offre"], input[name="taille"], input[name="formule"]').forEach(function (e) { e.addEventListener("change", function () { majPrix(); toutMettreAJour(); }); });
+document.querySelectorAll('input[name="mult"]').forEach(function (e) { e.addEventListener("change", function () { majObjectif(); toutMettreAJour(); }); });
+$("caActuel").addEventListener("input", function () { majObjectif(); majTranche(); toutMettreAJour(); });
+$("quiz").addEventListener("input", function (ev) { if (ev.target.id !== "colle") toutMettreAJour(); });
+$("quiz").addEventListener("change", function (ev) { if (ev.target.id !== "colle") toutMettreAJour(); });
+
 // Téléchargement : dans la page publiée, via la capacité « downloads » ; en fichier local, par le navigateur.
 var dlPromesse = (window.claude && typeof window.claude.use === "function") ? window.claude.use("downloads") : Promise.resolve(null);
 function etat(msg, type) { var e = $("etat"); e.textContent = msg; e.className = "etat" + (type ? " " + type : ""); }
@@ -379,51 +635,48 @@ $("pdf").addEventListener("click", async function () {
   rendre();
   var el = $("contrat"); el.classList.add("export");
   var worker = html2pdf().set({
-    margin: [22, 20, 20, 20],
-    filename: nomFichier(),
-    image: { type: "jpeg", quality: 0.95 },
-    html2canvas: { scale: 2, backgroundColor: "#ffffff" },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    margin: [22, 20, 20, 20], filename: nomFichier(), image: { type: "jpeg", quality: 0.95 },
+    html2canvas: { scale: 2, backgroundColor: "#ffffff" }, jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     pagebreak: { mode: ["avoid-all", "css"] }
   }).from(el);
   try {
     var dl = window.claude ? await dlPromesse : null;
-    if (dl) {
-      var blob = await worker.outputPdf("blob");
-      await dl.save({ filename: nomFichier(), data: blob });
-      etat("PDF enregistré.", "ok");
-    } else if (!window.claude) {
-      await worker.save();
-      etat("PDF téléchargé.", "ok");
-    } else {
-      etat("Le téléchargement n'est pas disponible dans cette vue.", "erreur");
-    }
+    if (dl) { var blob = await worker.outputPdf("blob"); await dl.save({ filename: nomFichier(), data: blob }); etat("PDF enregistré.", "ok"); }
+    else if (!window.claude) { await worker.save(); etat("PDF téléchargé.", "ok"); }
+    else { etat("Le téléchargement n'est pas disponible dans cette vue.", "erreur"); }
   } catch (err) {
     var code = err && err.code;
     if (code === "declined") etat("Téléchargement annulé.");
     else if (code === "rate_limited") etat("Une demande est déjà ouverte. Réessaie dans un instant.", "erreur");
     else etat("Le PDF n'a pas pu être créé. Réessaie.", "erreur");
-  } finally {
-    el.classList.remove("export"); btn.disabled = false;
-  }
+  } finally { el.classList.remove("export"); btn.disabled = false; }
 });
 
-// Envoi pour signature (sans GHL depuis le 23/10/2026) : le contrat exact part à la fonction Supabase « contrats »,
-// qui le fait signer par SignWell (page en français) et envoie les e-mails « Votre contrat Oqora à signer » puis
-// « Votre contrat Oqora est signé ». Avec ou sans garantie : même adresse, le modèle suit le bouton Garantie.
+// Envoi pour signature : le contrat exact part à la fonction Supabase « contrats ». Elle choisit l'outil : DocuSeal
+// (serveur Oqora, demandé par Jules le 21/11) ou SignWell (par défaut tant que DocuSeal n'est pas allumé pour tous).
+// Avec DocuSeal, le robot du serveur prépare le contrat en quelques secondes : la page suit l'état jusqu'à l'envoi.
+// Jules, 23/11 : la cliente ne doit jamais voir « Contrat Oqora sans garantie » (nom en haut de la page de signature) :
+// on envoie toujours « avec », le nom affiché est « Contrat Oqora ». Le texte signé suit quand même le bouton Garantie.
 var ENVOI = "https://keetfedlotpcaykfxqzr.supabase.co/functions/v1/contrats/envoyer";
-// Balise SignWell : place la case de signature de la gérante (blanche, invisible) entre « Signature : » et la ligne.
-var BALISE = "{{signature:1:y:::signature_client:200:60}}";
-// Le contrat tel qu'il sera signé : même texte que l'aperçu, avec la date du jour et la case de signature.
+var ETAT = "https://keetfedlotpcaykfxqzr.supabase.co/functions/v1/contrats/etat";
+async function suivreEnvoi(id, email) {
+  for (var i = 0; i < 45; i++) {
+    await new Promise(function (r) { setTimeout(r, 2000); });
+    var r = await fetch(ETAT + "?c=" + encodeURIComponent(id)).catch(function () { return null; });
+    var e = r && r.ok ? await r.json().catch(function () { return {}; }) : {};
+    if (e.statut === "envoye" || e.statut === "vu" || e.statut === "signe") return "Contrat envoyé à " + email + ". Elle le reçoit par e-mail maintenant.";
+    if (e.statut === "erreur") throw new Error(e.erreur || "L'envoi n'a pas abouti. Réessaie, ou télécharge le PDF.");
+  }
+  throw new Error("Le contrat n'est pas encore parti. Attends 10 minutes avant de renvoyer, ou télécharge le PDF et envoie-le par e-mail.");
+}
+var BALISE = "{{signature:1:y:::signature_client:200:60}}"; // case de signature de la gérante (blanche, invisible)
 function htmlPourSignature(dateTxt) {
   rendre({ date: dateTxt, signature: true });
   var corps = $("contrat").innerHTML;
   rendre();
   var css = "@page { size: A4; margin: 22mm 20mm 20mm 20mm; } body { margin:0; background:#ffffff; }";
   Array.prototype.forEach.call(document.styleSheets, function (f) {
-    try {
-      Array.prototype.forEach.call(f.cssRules, function (r) { if (r.selectorText && r.selectorText.indexOf(".contrat") === 0) css += "\n" + r.cssText; });
-    } catch (e) {}
+    try { Array.prototype.forEach.call(f.cssRules, function (r) { if (r.selectorText && r.selectorText.indexOf(".contrat") === 0) css += "\n" + r.cssText; }); } catch (e) {}
   });
   return '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Contrat Oqora</title><style>' + css + "</style></head><body>" +
     '<div class="contrat export">' + corps + "</div></body></html>";
@@ -431,25 +684,25 @@ function htmlPourSignature(dateTxt) {
 function donneesContrat() {
   var o = val("offre"), d = duree(), evalMois = Math.min(4, d);
   var t = paiementTexte($("prix").value, d);
+  var l = ligneGrille(val("formule"), o, val("taille"));
   return {
     email: $("email").value.trim(), prenom: $("prenom").value.trim(), nom: $("nom").value.trim(),
-    centre: $("centre").value.trim(), adresse: $("adresse").value.trim(),
-    offre: "Offre " + o, duree: String(d),
+    centre: $("centre").value.trim(), adresse: $("adresse").value.trim(), siret: chiffres($("siret").value),
+    
+    option_objectif: val("avecObjectif") === "oui", option_support: val("support") === "oui",
+    formule: val("formule"), offre_nom: l ? l.offre : "", offre: "Offre " + o, duree: String(d),
     ca_actuel: $("caActuel").value ? euros($("caActuel").value) : "", objectif_ca: $("objectif").value ? euros($("objectif").value) : "",
     prix_mensuel: $("prix").value ? euros($("prix").value) : "",
     paiement_titre: t.titre, paiement_montant: t.montant, paiement_detail: t.detail,
     operatrice: o === "2" ? "Opératrice Dédiée : une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme." : "",
     condition_offre_1: o === "1" ? "Offre 1 : le Client a rappelé toutes ses demandes chaque jour, sans exception." : "",
     periode_evaluation: LETTRES[evalMois] + " (" + evalMois + ")",
-    article_2: texteArticle2(d),
-    garantie: texteGarantie(d),
-    // date du jour de l'envoi = jour de l'appel ; elle s'écrit dans « Fait à Paris, le … » du modèle GHL
-    date_contrat: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    article_2: texteArticle2(d), garantie: texteGarantie(d),
+    date_contrat: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
+    version: "v2 (grille du 18/11, après-closing)"
   };
 }
 function etatSigner(msg, type) { var e = $("etatSigner"); e.textContent = msg; e.className = "etat" + (type ? " " + type : ""); }
-// Dans la page artifact de Claude, les envois vers d'autres sites sont interdits (règle de sécurité du viewer) :
-// on remplace le bouton par un lien vers la version GitHub, qui envoie.
 var LIEN_GITHUB = "https://oqora.github.io/generateur-contrat/";
 if (window.claude) {
   $("signer").textContent = "Ouvrir la version qui envoie";
@@ -457,26 +710,29 @@ if (window.claude) {
   etatSigner("Depuis cette page, l'envoi est bloqué. Pour envoyer le contrat en appel, utilise " + LIEN_GITHUB);
 }
 $("signer").addEventListener("click", async function () {
-  if (window.claude) return;
+  if (window.claude || blocage()) return;
   var m = manquants();
-  if (!$("adresse").value.trim()) m.push("adresse du centre");
+  if (!$("adresse").value.trim()) m.push("adresse du siège");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($("email").value.trim())) m.push("e-mail de la gérante");
   if (m.length) { etatSigner("Il manque : " + m.join(", ") + ".", "erreur"); return; }
   var btn = this; btn.disabled = true; etatSigner("Envoi en cours…");
   try {
     var donnees = donneesContrat();
-    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: "avec" }) });
-    // Jules, 23/11 : la cliente ne voit jamais « Contrat Oqora sans garantie » (nom en haut de la page de signature) :
-    // on envoie toujours « avec », le nom affiché est « Contrat Oqora ». Le texte signé suit le bouton Garantie.
+    var r = await fetch(ENVOI, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ donnees: donnees, html: htmlPourSignature(donnees.date_contrat), garantie: "avec", signature: "docuseal", essai: !ENVOI_OUVERT }) });
     var rep = await r.json().catch(function () { return {}; });
     if (!r.ok) throw new Error(rep.erreur || "");
-    etatSigner((rep.mode === "essai" ? "Essai : contrat" : "Contrat") + " envoyé à " + $("email").value.trim() + ". Elle le reçoit par e-mail dans la minute.", "ok");
+    if (rep.signature === "docuseal") {
+      etatSigner("Préparation du contrat (quelques secondes)…");
+      etatSigner(await suivreEnvoi(rep.id, $("email").value.trim()), "ok");
+    } else {
+      etatSigner((rep.mode === "essai" ? "Essai : contrat" : "Contrat") + " envoyé à " + $("email").value.trim() + ". Elle le reçoit par e-mail dans la minute.", "ok");
+    }
   } catch (err) {
     etatSigner(err && err.message ? err.message : "L'envoi n'a pas marché. Vérifie la connexion et réessaie.", "erreur");
-  } finally { btn.disabled = false; }
+  } finally { btn.disabled = !!blocage(); }
 });
 
+departFormule();
 majPrix();
-majPaiement();
-rendre();
+toutMettreAJour();
 </script>
