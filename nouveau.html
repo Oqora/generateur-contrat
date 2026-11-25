@@ -47,6 +47,7 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
 .info.ok { color:var(--ok); }
 .info.alerte { color:var(--alerte); }
 .btn { width:100%; padding:13px; border:0; border-radius:10px; background:var(--accent); color:var(--accent-texte); font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; }
+.btn.doux { background:var(--accent-doux); color:var(--texte); font-size:14px; padding:11px; }
 .btn:hover { filter:brightness(1.08); }
 .btn[disabled] { opacity:.6; cursor:not-allowed; }
 .etat { font-size:13px; min-height:18px; margin-top:8px; color:var(--gris); }
@@ -105,7 +106,8 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
     <p class="sous">Remplis pendant l'appel. Le contrat se met à jour à droite.</p>
 
     <div class="bloc-titre">La cliente</div>
-    <div class="q"><label for="colle">Colle son message</label>
+    <div class="q"><button type="button" class="btn doux" data-message="infos">Copier le message « ses infos »</button></div>
+    <div class="q"><label for="colle">Colle sa réponse</label>
       <textarea id="colle" placeholder="Nom de la société, SIRET, e-mail, adresse : tel qu'elle te l'envoie"></textarea>
       <div class="info" id="colleInfo">Le SIRET remplit tout seul la société, l'adresse du siège et la gérante, depuis le registre officiel.</div></div>
     <div class="q"><label for="siret">SIRET</label><input type="text" id="siret" inputmode="numeric" placeholder="14 chiffres">
@@ -143,6 +145,16 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
 
     <div class="q"><label for="prix">Prix mensuel HT (€)</label><input type="number" id="prix" min="0" step="10">
       <div class="aide" id="prixAide">Rempli d'après ta grille Notion. Modifiable.</div></div>
+
+    <div class="bloc-titre">Les options</div>
+    <div class="q" id="blocDix"><div class="lab">10 % du chiffre d'affaires en plus</div>
+      <div class="choix"><label><input type="radio" name="dix" value="oui" checked><span>Avec les 10 %</span></label><label><input type="radio" name="dix" value="non"><span>Sans les 10 %</span></label></div></div>
+    <div class="q" id="blocTournage" hidden><div class="lab">Tournage dans son centre</div>
+      <div class="choix"><label><input type="radio" name="tournage" value="oui"><span>On vient filmer<small>+ 300 € par tournage</small></span></label><label><input type="radio" name="tournage" value="non" checked><span>Avec ses rushs</span></label></div></div>
+    <div class="q"><div class="lab">Objectif de CA dans le contrat</div>
+      <div class="choix"><label><input type="radio" name="avecObjectif" value="oui"><span>Avec objectif</span></label><label><input type="radio" name="avecObjectif" value="non" checked><span>Sans objectif</span></label></div></div>
+    <div class="q"><div class="lab">Support 7j/7</div>
+      <div class="choix"><label><input type="radio" name="support" value="oui"><span>Avec</span></label><label><input type="radio" name="support" value="non" checked><span>Sans</span></label></div></div>
 
     <div class="q"><div class="lab">Durée</div>
       <div class="choix serre">
@@ -210,8 +222,20 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
       <div class="fl"><span class="k">Total TTC</span><span class="v" id="f-ttc"></span><span></span></div>
       <div class="fl"><span class="k">Échéance</span><span class="v">À réception : le paiement se demande au début du mois, jamais en fin de mois</span><button type="button" data-copie="f-echeance">Copier</button></div>
       <span id="f-echeance" hidden data-brut="À réception"></span>
-      <div class="aide">Quantité 1. Indy numérote la facture et l'envoie. Paiement par virement instantané : vérifie une fois que l'IBAN de la SASU s'affiche sur tes factures Indy.</div>
+      <div class="aide">Quantité 1. Indy numérote la facture. <span id="noteTournage" hidden>Le supplément de tournage (300 € HT) n'est pas compté ici.</span></div>
     </div>
+
+    <div class="bloc-titre">Le virement</div>
+    <div class="q">
+      <button type="button" class="btn doux" data-message="rib">Copier le message avec le RIB</button>
+      <div class="info" id="ribInfo" role="status"></div></div>
+    <details class="q" id="ribBloc"><summary>Mon RIB</summary>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <input type="text" id="ribTitulaire" placeholder="Titulaire du compte" aria-label="Titulaire du compte" data-rib>
+        <input type="text" id="ribIban" placeholder="IBAN" aria-label="IBAN" data-rib>
+        <input type="text" id="ribBic" placeholder="BIC" aria-label="BIC" data-rib>
+        <div class="aide">À taper une seule fois. Le RIB reste dans ce navigateur : il n'est jamais envoyé ni publié.</div>
+      </div></details>
   </form>
 
   <main class="apercu"><div class="feuille"><div class="contrat" id="contrat"></div></div></main>
@@ -228,7 +252,7 @@ var LETTRES = { 1: "un", 2: "deux", 3: "trois", 4: "quatre" };
 // Textes « proposés » (jamais validés par Jules) : ils n'entrent dans un contrat envoyé qu'après son oui mot pour mot.
 // Tant que c'est false : surlignés en jaune dans l'aperçu (et dans les PDF de relecture, ?validation=1), envoi bloqué
 // pour Pub + Insta ; la phrase du 10 % n'apparaît qu'en relecture.
-var VALIDE = { insta: false, dix: false, art2: false, sasu40: false, debutMois: false };
+var VALIDE = { insta: false, dix: false };
 var RELECTURE = /[?&]validation=1(&|$)/.test(location.search);
 
 var $ = function (id) { return document.getElementById(id); };
@@ -243,15 +267,12 @@ function ligneGrille(f, o, t) {
 // Durée en mois : un des boutons, ou « Autre » = le nombre tapé (ex. 1 mois de test, 16/10)
 // « Mois par mois » : sans engagement, renouvelé chaque mois, sans garantie ; le contrat compte 1 mois (Jules, 19/10)
 function sansEngagement() { return val("duree") === "mensuel"; }
-// Complète : texte du générateur d'origine (« accompagnement »). Pub et Pub + Insta : comme le contrat pub seule du 20/11
-// (21/11, demandé par Jules) : « prestation », sans objectif de CA ni support 7j/7 ; en mois par mois, l'article 2 de
-// ce contrat (texte proposé, pas encore validé mot à mot par Jules : surligné tant que VALIDE.art2 est false).
-var ART2_SANS_DUREE = "La prestation commence à la date de signature de ce contrat, pour une durée indéterminée. Il n'y a pas d'engagement de durée : le Client peut arrêter la prestation à tout moment. Tout mois commencé est dû en entier : la prestation continue jusqu'à la fin de ce mois, puis s'arrête.";
+// Pub et Pub + Insta : « prestation » ; Complète : « accompagnement ». Sans engagement : durée indéterminée (texte signé le 23/11).
+function estComplete() { return val("formule") === "Complète"; }
 function texteArticle2(d) {
-  if (val("formule") !== "Complète") return sansEngagement() ? ART2_SANS_DUREE : "La durée de la prestation est de " + d + " mois, à compter de la date de signature de ce contrat.";
-  return sansEngagement()
-    ? "La durée de l'accompagnement est d'un (1) mois, renouvelé chaque mois à compter de la date de signature de ce contrat. Il n'y a pas d'engagement de durée : le Client peut arrêter l'accompagnement à tout moment. Tout mois commencé est dû en entier : l'accompagnement continue jusqu'à la fin de ce mois, puis s'arrête."
-    : "La durée de l'accompagnement est de " + d + " mois, à compter de la date de signature de ce contrat.";
+  var le = estComplete() ? "l'accompagnement" : "la prestation";
+  if (sansEngagement()) return (estComplete() ? "L'accompagnement" : "La prestation") + " commence à la date de signature de ce contrat, pour une durée indéterminée. Il n'y a pas d'engagement de durée : le Client peut arrêter " + le + " à tout moment. Tout mois commencé est dû en entier : " + le + " continue jusqu'à la fin de ce mois, puis s'arrête.";
+  return "La durée de " + le + " est de " + d + " mois, à compter de la date de signature de ce contrat.";
 }
 function duree() {
   if (sansEngagement()) return 1;
@@ -332,19 +353,18 @@ function majPaiement() {
 // sans rien ajouter qui n'ait été validé, sauf les passages « proposés » surlignés (voir VALIDE).
 // Pub et Pub + Insta : comme ce contrat (changements dictés par Jules) : la SASU comme Prestataire, 40 € au 9.2,
 // « le Client appelle lui-même » en Offre 1, sans renvoi à l'Annexe 1 (5.1) ni phrase sur le choix de la modalité.
-// Complète : texte d'origine (Annexe 1, phrase sur la modalité, 500 €) ; la SASU et les 40 € y sont seulement proposés
-// (surlignés en relecture, absents d'un contrat envoyé tant que VALIDE.sasu40 est false).
+// Complète : texte d'origine (Annexe 1, phrase sur la modalité), avec la SASU et les 40 € comme partout.
 var DEBUT_MOIS = "Le paiement est demandé au début de chaque mois, jamais en fin de mois.";
 var SASU = "Oqora, SASU au capital de 5 000 €<br>6 Passage Alexandrine, 75011 Paris<br>SIREN 130 092 422 RCS Paris<br>représentée par Jules Couapel";
 var ITEMS_ACQUISITION = ["la création de la stratégie ads (contenus, positionnement, campagnes) ;", "la création des publicités et des créas ;", "la création et la gestion des campagnes publicitaires Meta ;", "la gestion journalière des budgets Meta ;", "l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;", "la création d'une landing page pour récupérer les informations des prospects ;", "la mise en place du formulaire et des outils CRM de gestion des leads ;", "la mise en place d'un outil de suivi des performances en direct."];
 var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>";
-// Proposé (grille du 18/11 : « 10 vidéos tous les 4 mois, montées avec ses rushs ; supplément de 300 € par tournage si Jules vient filmer, alors 5 filmées + 5 rushs »)
-var VIDEOS_INSTA = "<h3>Vidéos pour les réseaux sociaux</h3><p>Le Prestataire réalisera le montage de 10 vidéos pour les réseaux sociaux du Client tous les 4 mois, à partir des vidéos filmées par le Client. À la demande du Client, le Prestataire peut venir filmer dans le centre, pour un supplément de 300 € HT par tournage : 5 des 10 vidéos sont alors filmées par le Prestataire.</p>";
+// Proposé, avec les mots de la grille : « 10 vidéos tous les 4 mois », « montées avec vos rushs », « supplément de 300 € par tournage », « 5 vidéos avec nos images et 5 avec vos rushs »
+var VIDEOS_RUSHS = "<h3>Vidéos</h3><p>Le Prestataire montera 10 vidéos pour l'Instagram du Client tous les 4 mois, avec les rushs du Client.</p>";
+var VIDEOS_TOURNAGE = "<h3>Vidéos</h3><p>Le Prestataire viendra filmer dans le centre du Client, avec un supplément de 300 € HT par tournage. Il montera 10 vidéos pour l'Instagram du Client tous les 4 mois : 5 avec les images du tournage et 5 avec les rushs du Client.</p>";
 var RESSOURCES = "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu) et des scripts.</p>";
 // Proposé (grille du 18/11 : « Les 10 % : sur le CA fait EN PLUS grâce à Oqora, seulement sur Pub et Pub + Insta »)
 function clauseDix(caAct) {
-  return "<p>En plus du prix mensuel, le Client verse au Prestataire 10 % du chiffre d'affaires que le centre fait en plus grâce au Prestataire, au-dessus de ce qu'il faisait avant, soit au-dessus de " +
-    (caAct ? euros(caAct) : '<span class="vide">[CA actuel]</span>') + " par mois.</p>";
+  return "<p>En plus de ce prix, le Client verse au Prestataire 10 % du chiffre d'affaires qu'il fait en plus grâce au Prestataire, au-dessus de ce qu'il faisait avant" + (caAct ? " (" + euros(caAct) + " par mois)" : "") + ".</p>";
 }
 
 function rendre(opts) {
@@ -368,33 +388,35 @@ function rendre(opts) {
   if (!complete) items.splice(2, 0, "le montage des publicités vidéo ;"); // sans tournage, le montage des pubs reste (contrat du 20/11)
   var acquisition = "<h3>Acquisition</h3><p>Le Prestataire assurera :</p><ul>" + items.map(function (i) { return "<li>" + i + "</li>"; }).join("") + "</ul>" +
     (o === "1" && !complete ? "<p>Le Client appelle lui-même chaque demande, prend les rendez-vous dans l'agenda du centre et les confirme.</p>" : "");
-  var videos = complete ? TOURNAGE_COMPLET : insta ? blocPropose(VIDEOS_INSTA, VALIDE.insta) : "";
+  var avecTournage = insta && val("tournage") === "oui";
+  var videos = complete ? TOURNAGE_COMPLET : insta ? blocPropose(avecTournage ? VIDEOS_TOURNAGE : VIDEOS_RUSHS, VALIDE.insta) : "";
   var ressources = complete ? RESSOURCES : "";
-  var dix = complete ? "" : VALIDE.dix ? clauseDix(caAct) : RELECTURE ? '<div class="propose">' + clauseDix(caAct) + "</div>" : "";
+  var dix = complete || val("dix") !== "oui" ? "" : blocPropose(clauseDix(caAct), VALIDE.dix);
+  var avecObjectif = val("avecObjectif") === "oui";
   var condRappel = o === "1" ? "<li>Le Client a rappelé toutes ses demandes chaque jour, sans exception</li>" : "";
 
   $("contrat").innerHTML =
     '<div class="cover"><h1>CONTRAT OQORA</h1>' +
     '<div class="sub">Contrat de Services d\'Acquisition Clients</div>' +
     '<div class="theme">Centres Esthétiques</div>' +
-    (complete ? '<div class="prog">Programme Complet · ' + d + " Mois · " + couverture + "</div>" : "") +
+    (function () { var l = [complete ? "Programme Complet" : "", complete && !sansEngagement() ? d + " Mois" : "", avecObjectif ? couverture : ""].filter(Boolean).join(" · "); return l ? '<div class="prog">' + l + "</div>" : ""; })() +
     '<div class="org">Oqora</div><div class="who">Jules Couapel · Paris</div></div>' +
 
     '<h2 class="brk">Parties contractantes</h2><table class="parties">' +
-    '<tr><td><b>Prestataire</b></td><td>' + (!complete || VALIDE.sasu40 ? SASU : RELECTURE ? '<span class="propose">' + SASU + "</span>" : 'Jules Couapel<br>Oqora<br>6 Passage Alexandrine, Paris') + '<br>(ci-après dénommé "le Prestataire")</td></tr>' +
+    '<tr><td><b>Prestataire</b></td><td>' + SASU + '<br>(ci-après dénommé "le Prestataire")</td></tr>' +
     "<tr><td><b>Client</b></td><td>" + client + '<br>(ci-après dénommé "le Client")</td></tr></table>' +
 
     "<h2>Article 1 : Objet du contrat</h2>" +
-    (complete
+    (avecObjectif
       ? "<p>Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à atteindre un chiffre d'affaires mensuel de " +
-        champ(objectif ? euros(objectif) : "", "[__] €") + ' en construisant son "écosystème d\'acquisition" sur l\'accompagnement de ' + d + " mois.</p>"
+        champ(objectif ? euros(objectif) : "", "[__] €") + ' en construisant son "écosystème d\'acquisition"' + (sansEngagement() ? "" : " sur " + (complete ? "l'accompagnement" : "la prestation") + " de " + d + " mois") + ".</p>"
       : '<p>Le Prestataire s\'engage à fournir des services de consultation et d\'acquisition pour aider le Client à construire son "écosystème d\'acquisition".</p>') +
 
     "<h2>Article 2 : Durée " + (complete ? "de l'accompagnement" : "de la prestation") + "</h2>" +
-    "<p>" + (!complete && sansEngagement() && !VALIDE.art2 ? '<span class="propose">' + esc(texteArticle2(d)) + "</span>" : esc(texteArticle2(d))) + "</p>" +
+    "<p>" + texteArticle2(d) + "</p>" +
 
     '<h2 class="brk">Article 3 : Services fournis</h2>' +
-    (complete ? "<h3>Support 7j/7</h3><p>Le Prestataire fournira un support continu 7 jours sur 7.</p>" : "") +
+    (val("support") === "oui" ? "<h3>Support 7j/7</h3><p>Le Prestataire fournira un support continu 7 jours sur 7.</p>" : "") +
     setter + acquisition + videos + ressources +
 
     '<h2 class="brk">Article 4 : Modalités de paiement</h2>' +
@@ -403,7 +425,7 @@ function rendre(opts) {
     "<p>Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.</p>" +
     // Règle de Jules (21/11, 20 h 30) : « Le paiement, on le demande toujours au début du mois. Jamais en fin de mois. »
     // Même phrase que dans le contrat du 20/11 ; seulement en paiement chaque mois (en une ou plusieurs fois, la date est déjà écrite).
-    (val("paiement") === "mois" ? "<p>" + (VALIDE.debutMois ? DEBUT_MOIS : '<span class="propose">' + DEBUT_MOIS + "</span>") + "</p>" : "") +
+    (val("paiement") === "mois" ? "<p>" + DEBUT_MOIS + "</p>" : "") +
     "<p>" + (complete ? "Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties.<br>" : "") + "Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.</p>" +
 
     "<h2>Article 5 : " + (avecGarantie ? "Garantie de résultat" : "Engagement et suivi des résultats") + "</h2>" +
@@ -414,7 +436,7 @@ function rendre(opts) {
     '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à ' + texteGarantie(d) + ' l\'investissement initial du Client dans Oqora (hors budget publicitaire)</p>' +
     "<h3>5.5 Modalités de Mise en Œuvre</h3><p>Les modalités précises de mise en œuvre de cette garantie, notamment la définition des objectifs, la mesure de la performance et le calcul du retour sur investissement, sont détaillées dans l'Article 3.</p>" +
     "<h3>5.6 Conditions et exclusions</h3><p>La garantie ne s'applique que si le Client a respecté toutes les conditions suivantes. Si une seule condition n'est pas respectée, la garantie est annulée :</p>" +
-    "<ul><li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li><li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours</li>" + condRappel + "</ul>" +
+    "<ul>" + (complete ? "<li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li>" : "") + "<li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours</li>" + condRappel + "</ul>" +
     "<p>Cette garantie ne s'appliquera pas non plus dans les situations où les manquements à la réalisation des objectifs sont imputables à :</p>" +
     "<ul><li>Des circonstances indépendantes de la volonté du Prestataire</li><li>Des actes du Client</li><li>Des catastrophes naturelles</li><li>Des actes de tiers</li><li>Des décisions des plateformes publicitaires et des réseaux sociaux, notamment Meta (restriction, suspension ou blocage d'un compte, refus d'une publicité, changement de leurs règles ou de leur fonctionnement)</li><li>Toute autre circonstance échappant au contrôle raisonnable du Prestataire</li></ul>" : "") +
 
@@ -423,11 +445,11 @@ function rendre(opts) {
     "<h2>Article 7 : Loi applicable et juridiction</h2><p>Ce contrat est soumis aux lois françaises et à la juridiction des tribunaux de Paris.</p>" +
     "<h2>Article 8 : Onboarding</h2>" +
     "<h3>8.1 Document d'Onboarding</h3><p>Une fois le paiement réalisé, le Client recevra un document d'onboarding de la part du Prestataire.</p>" +
-    "<h3>8.2 Durée de l'Onboarding</h3><p>" + (complete ? "La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client." : "La phase d'onboarding comprend l'appel d'intégration.") + "</p>" +
+    "<h3>8.2 Durée de l'Onboarding</h3><p>" + (complete || avecTournage ? "La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client." : "La phase d'onboarding comprend l'appel d'intégration.") + "</p>" +
     "<h3>8.3 Accès à l'Espace Client</h3><p>Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera " + (complete ? "l'accompagnement" : "la prestation") + " selon les termes de ce contrat.</p>" +
     "<h2>Article 9 : Pénalités de retard</h2>" +
     "<h3>9.1 Déclenchement des Pénalités</h3><p>Toute somme non payée à son échéance donnera lieu au paiement par le Client de pénalités de retard, sans qu'un rappel soit nécessaire.</p>" +
-    "<h3>9.2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de " + (!complete || VALIDE.sasu40 ? "40€" : RELECTURE ? '<span class="propose">40€</span>' : "500€") + ", sauf justification de frais supérieurs.</p>" +
+    "<h3>9.2 Majoration Fixe pour Frais de Recouvrement</h3><p>Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de " + "40€" + ", sauf justification de frais supérieurs.</p>" +
     "<h3>9.3 Conséquences sur les Services</h3><p>En cas de retard de paiement de plus de 10 jours, le Prestataire se réserve le droit de :</p>" +
     "<ul><li>Suspendre l'exécution de ses obligations</li><li>Suspendre ou annuler la fourniture des services</li><li>Résilier le contrat</li></ul><p>Sans que le Client puisse prétendre à une quelconque indemnité.</p>" +
     "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
@@ -545,33 +567,75 @@ document.querySelectorAll("[data-copie]").forEach(function (b) {
   });
 });
 
+// ---------------------------------------------------------------- les messages à copier (WhatsApp)
+// « ses infos » : texte exact de la page Notion Onboarding de Jules (25/11). « RIB » : proposé.
+var MESSAGE_INFOS = "Pour vous envoyer le contrat et la facture à votre nom, j'ai besoin de :\n\n- Nom de l'entreprise\n- Adresse complète de l'entreprise\n- Prénom + Nom\n- SIRET\n- Adresse e-mail";
+function ibanValide(s) {
+  var i = s.replace(/\s/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(i) || (i.slice(0, 2) === "FR" && i.length !== 27)) return false;
+  var n = (i.slice(4) + i.slice(0, 4)).replace(/[A-Z]/g, function (c) { return c.charCodeAt(0) - 55; }), r = 0;
+  for (var k = 0; k < n.length; k++) r = (r * 10 + +n[k]) % 97;
+  return r === 1;
+}
+function messageRib() {
+  var iban = $("ribIban").value.replace(/\s/g, "").toUpperCase().replace(/(.{4})(?=.)/g, "$1 ");
+  return "Voici votre facture, et le RIB pour le virement :\n\nTitulaire : " + $("ribTitulaire").value.trim() + "\nIBAN : " + iban +
+    ($("ribBic").value.trim() ? "\nBIC : " + $("ribBic").value.trim().toUpperCase() : "") + "\nMontant : " + $("f-ttc").textContent + " TTC\nRéférence : " + $("centre").value.trim() +
+    "\n\nEnvoyez-moi une capture d'écran du virement quand c'est fait.";
+}
+document.querySelectorAll("[data-rib]").forEach(function (e) {
+  try { e.value = localStorage.getItem("oqora-" + e.id) || ""; } catch (x) {}
+  e.addEventListener("input", function () { try { localStorage.setItem("oqora-" + e.id, e.value); } catch (x) {} info("ribInfo", ""); });
+});
+document.querySelectorAll("[data-message]").forEach(function (b) {
+  var libelle = b.textContent;
+  b.addEventListener("click", async function () {
+    var m = MESSAGE_INFOS;
+    if (b.dataset.message === "rib") {
+      var manque = !$("ribTitulaire").value.trim() || !$("ribIban").value.trim() ? "Tape d'abord ton RIB, une seule fois." : !ibanValide($("ribIban").value) ? "IBAN faux : vérifie les chiffres." : !$("centre").value.trim() || !(parseFloat($("prix").value) > 0) ? "Il manque la société ou le prix." : "";
+      if (manque) { if (/RIB|IBAN/.test(manque)) $("ribBloc").open = true; info("ribInfo", manque, "alerte"); return; }
+      info("ribInfo", ""); m = messageRib();
+    }
+    try { await navigator.clipboard.writeText(m); b.textContent = "Copié"; setTimeout(function () { b.textContent = libelle; }, 1500); }
+    catch (x) { info("ribInfo", "La copie n'a pas marché.", "alerte"); }
+  });
+});
+
 function manquants() {
   var m = [];
   if (!$("centre").value.trim()) m.push("société");
   if (!$("prenom").value.trim() || !$("nom").value.trim()) m.push("prénom et nom de la gérante");
   if (!$("prix").value) m.push("prix");
-  if (val("formule") === "Complète" && !$("objectif").value) m.push("objectif de CA");
+  if (val("avecObjectif") === "oui" && !$("objectif").value) m.push("objectif de CA");
   return m;
 }
 // Envoi ouvert à toutes les clientes seulement après le oui de Jules sur les contrats (PDF de relecture du 21/11).
 // Avant : la page envoie « essai », et la fonction n'accepte alors que les adresses de Jules.
 var ENVOI_OUVERT = false;
-// Envoi bloqué tant qu'un texte « proposé » est dans le contrat, et toujours en mode relecture
+// Une fois l'envoi ouvert aux clientes : bloqué si le contrat contient une phrase que Jules n'a pas encore validée
 function blocage() {
   if (RELECTURE) return "Page de relecture : l'envoi est coupé.";
-  if (val("formule") === "Pub + Insta" && !VALIDE.insta) return "Le texte Pub + Insta (surligné en jaune) attend ton oui : l'envoi est bloqué pour cette formule.";
+  if (ENVOI_OUVERT && document.querySelector("#contrat .propose")) return "Une phrase en jaune attend ton oui : l'envoi est bloqué.";
   return "";
 }
 function toutMettreAJour() {
-  // L'objectif de CA n'est dans le contrat que pour la Complète (Pub et Pub + Insta : sans objectif, comme le contrat du 20/11)
-  var complete = val("formule") === "Complète";
-  $("multBloc").hidden = !complete; $("objectif").hidden = !complete;
-  $("objectifTitre").textContent = complete ? "CA actuel et objectif" : "CA actuel";
-  $("objectifAide").textContent = complete ? "Objectif calculé depuis son CA actuel. Modifiable. Apparaît sur la couverture et à l'article 1." : "Sert à choisir la taille du centre" + (VALIDE.dix || RELECTURE ? " et au 10 %." : ".");
+  var avecObj = val("avecObjectif") === "oui", complete = estComplete(), insta = val("formule") === "Pub + Insta";
+  $("multBloc").hidden = !avecObj; $("objectif").hidden = !avecObj;
+  $("objectifTitre").textContent = avecObj ? "CA actuel et objectif" : "CA actuel";
+  $("objectifAide").textContent = avecObj ? "Objectif calculé depuis son CA actuel. Modifiable." : "Sert à choisir la taille du centre" + (complete ? "." : " et de point de départ pour les 10 %.");
+  $("blocDix").hidden = complete; $("blocTournage").hidden = !insta;
+  $("noteTournage").hidden = !(insta && val("tournage") === "oui");
   majPaiement(); rendre(); majFacture();
   var b = blocage(); $("signer").disabled = !!b; if (b) etatSigner(b, "erreur"); else if ($("etatSigner").className.indexOf("erreur") > -1) etatSigner("");
 }
 
+// Réglages de départ d'une formule (tout reste modifiable) : Pub et Pub + Insta comme le contrat signé le 23/11, Complète comme l'offre 2.0
+function cocher(nom, v) { document.querySelector('input[name="' + nom + '"][value="' + v + '"]').checked = true; }
+function departFormule() {
+  var c = estComplete();
+  cocher("garantie", c ? "avec" : "sans"); cocher("duree", c ? "3" : "mensuel"); cocher("paiement", "mois"); cocher("support", c ? "oui" : "non");
+}
+document.querySelectorAll('input[name="formule"]').forEach(function (e) { e.addEventListener("change", departFormule); });
 document.querySelectorAll('input[name="offre"], input[name="taille"], input[name="formule"]').forEach(function (e) { e.addEventListener("change", function () { majPrix(); toutMettreAJour(); }); });
 document.querySelectorAll('input[name="mult"]').forEach(function (e) { e.addEventListener("change", function () { majObjectif(); toutMettreAJour(); }); });
 $("caActuel").addEventListener("input", function () { majObjectif(); majTranche(); toutMettreAJour(); });
@@ -646,6 +710,8 @@ function donneesContrat() {
   return {
     email: $("email").value.trim(), prenom: $("prenom").value.trim(), nom: $("nom").value.trim(),
     centre: $("centre").value.trim(), adresse: $("adresse").value.trim(), siret: chiffres($("siret").value),
+    option_dix: !estComplete() && val("dix") === "oui", option_tournage: val("formule") === "Pub + Insta" && val("tournage") === "oui",
+    option_objectif: val("avecObjectif") === "oui", option_support: val("support") === "oui",
     formule: val("formule"), offre_nom: l ? l.offre : "", offre: "Offre " + o, duree: String(d),
     ca_actuel: $("caActuel").value ? euros($("caActuel").value) : "", objectif_ca: $("objectif").value ? euros($("objectif").value) : "",
     prix_mensuel: $("prix").value ? euros($("prix").value) : "",
@@ -688,6 +754,7 @@ $("signer").addEventListener("click", async function () {
   } finally { btn.disabled = !!blocage(); }
 });
 
+departFormule();
 majPrix();
 toutMettreAJour();
 </script>
