@@ -82,6 +82,7 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
 .contrat .pay .t { font-weight:bold; margin-bottom:4pt; }
 .contrat .box { text-align:center; font-weight:bold; margin:12pt 30pt; }
 .contrat .brk { page-break-before:always; }
+.contrat p:has(+ ul) { break-after:avoid; page-break-after:avoid; }
 .contrat h3, .contrat li, .contrat .pay, .contrat .box, .contrat .sign { page-break-inside:avoid; }
 .contrat .sign { display:flex; justify-content:space-between; margin-top:40pt; text-align:center; page-break-inside:avoid; }
 .contrat .sign div { width:45%; }
