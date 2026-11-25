@@ -121,12 +121,19 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
       <div class="aide">Le contrat lui est envoyé à cette adresse.</div></div>
 
     <div class="bloc-titre">L'offre</div>
-    <div class="q"><div class="lab">Formule</div>
+    <div class="q"><div class="lab">Écrit sur la page de garde</div>
+      <div class="choix">
+        <label><input type="radio" name="metier" value="Centres Esthétiques" checked><span>Centres Esthétiques</span></label>
+        <label><input type="radio" name="metier" value="Instituts de Beauté"><span>Instituts de Beauté</span></label>
+        <label><input type="radio" name="metier" value="Professionnels de la Beauté et de l'Esthétisme"><span>Professionnels de la Beauté et de l'Esthétisme</span></label>
+      </div></div>
+      <div class="q"><div class="lab">Formule</div>
       <div class="choix">
         <label><input type="radio" name="formule" value="Pub" checked><span>Pub</span></label>
-        <label><input type="radio" name="formule" value="Pub + Insta"><span>Pub + Insta<small>10 vidéos</small></span></label>
+        <label><input type="radio" name="formule" value="Pub + Insta"><span>Pub + Insta<small id="nbvPetit">10 vidéos</small></span></label>
         <label><input type="radio" name="formule" value="Complète"><span>Complète<small>30 vidéos</small></span></label>
-      </div></div>
+      </div>
+      <div id="nbVideosBloc" style="margin-top:8px" hidden><label for="nbVideos">Nombre de vidéos</label><input type="number" id="nbVideos" min="2" max="99" step="1" value="10"></div></div>
 
     <div class="q"><div class="lab">Appels</div>
       <div class="choix">
@@ -169,10 +176,10 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
 
     <div class="q"><div class="lab">Garantie</div>
       <div class="choix">
-        <label><input type="radio" name="garantie" value="avec" checked><span>Avec garantie</span></label>
-        <label><input type="radio" name="garantie" value="sans"><span>Sans garantie</span></label>
+        <label><input type="radio" name="garantie" value="avec"><span>Avec garantie</span></label>
+        <label><input type="radio" name="garantie" value="sans" checked><span>Sans garantie</span></label>
       </div>
-      <div class="aide">Sans garantie : les points 5.4 à 5.6 sont retirés du contrat.</div></div>
+      <div class="aide">Seulement pour la Complète, à partir de 2 mois. C'est toi qui la coches : retour à l'équilibre.</div></div>
 
     <div class="q"><div class="lab">Paiement</div>
       <div class="choix">
@@ -272,8 +279,8 @@ function duree() {
   var n = parseInt($("dureeAutre").value, 10);
   return n > 0 ? n : 1;
 }
-// Garantie : ×2 en temps normal ; sur un contrat d'1 mois, ×1 seulement (Jules, 16/10)
-function texteGarantie(d) { return val("garantie") === "sans" ? "Sans garantie" : d === 1 ? "une fois (×1)" : "deux fois (×2)"; }
+// Garantie (Jules, 25/11) : seulement dans la Complète, à partir de 2 mois, quand il la coche ; retour à l'équilibre
+function texteGarantie() { return val("garantie") === "sans" ? "Sans garantie" : "retour à l'équilibre"; }
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 function euros(n) { return Number(n).toLocaleString("fr-FR").replace(/ /g, " ") + "€"; }
 function eurosCentimes(n) { return Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, " ") + " €"; }
@@ -326,10 +333,11 @@ function blocPaiement(prix, d) {
 function majPaiement() {
   // Mois par mois : paiement chaque mois et sans garantie, imposés (Jules, 19/10)
   var se = sansEngagement();
-  document.querySelector('input[name="garantie"][value="avec"]').disabled = se;
+  var garantiePossible = estComplete() && !se && duree() >= 2;
+  document.querySelector('input[name="garantie"][value="avec"]').disabled = !garantiePossible;
+  if (!garantiePossible) document.querySelector('input[name="garantie"][value="sans"]').checked = true;
   document.querySelectorAll('input[name="paiement"]').forEach(function (e) { e.disabled = se && e.value !== "mois"; });
   if (se) {
-    document.querySelector('input[name="garantie"][value="sans"]').checked = true;
     document.querySelector('input[name="paiement"][value="mois"]').checked = true;
   }
   $("mensuelAide").hidden = !se;
@@ -348,8 +356,41 @@ function majPaiement() {
 var DEBUT_MOIS = "Le paiement est demandé au début de chaque mois, jamais en fin de mois.";
 var SASU = "Oqora, SASU au capital de 5 000 €<br>6 Passage Alexandrine, 75011 Paris<br>SIREN 130 092 422 RCS Paris<br>représentée par Jules Couapel";
 var ITEMS_ACQUISITION = ["la création de la stratégie ads (contenus, positionnement, campagnes) ;", "la création des publicités et des créas ;", "la création et la gestion des campagnes publicitaires Meta ;", "la gestion journalière des budgets Meta ;", "l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;", "la création d'une landing page pour récupérer les informations des prospects ;", "la mise en place du formulaire et des outils CRM de gestion des leads ;", "la mise en place d'un outil de suivi des performances en direct."];
-var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>";
-var RESSOURCES = "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu) et des scripts.</p>";
+var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client. Il peut prendre entre 1 et 2 jours entiers, selon les besoins.</p><p>Avant le tournage :</p><ul><li>la recherche des idées de vidéos, à partir de l'appel d'intégration ;</li><li>la recherche des concurrents du Client et de leurs meilleurs contenus ;</li><li>l'écriture des scripts : 9 accroches face caméra et 21 questions-réponses ;</li><li>l'appel de préparation en visio, pour valider les scripts et le déroulé du tournage avec le Client ;</li><li>le choix de la prestation filmée et de la cliente modèle.</li></ul><p>Pendant le tournage :</p><ul><li>le déplacement dans le centre du Client ;</li><li>le tournage des 9 accroches face caméra, 2 prises chacune ;</li><li>le tournage des 21 questions-réponses ;</li><li>le tournage d'une ou plusieurs prestations (si disponible) ;</li><li>le tournage de plans de l'institut, sans parole ;</li><li>le témoignage de la cliente modèle (si disponible) ;</li><li>la vidéo de présentation pour la landing page ;</li><li>la vidéo « rendez-vous » envoyée après la réservation et la veille.</li></ul><p>Après le tournage :</p><ul><li>le rangement des images dans le Drive du Client ;</li><li>le montage des 8 premières publicités ;</li><li>le montage de 30 vidéos pour les réseaux sociaux du Client.</li></ul>";
+var RESEAUX = "<h3>Réseaux Sociaux</h3><p>Le Prestataire assurera :</p><ul><li>la recherche des idées de vidéos, à partir de l'appel d'intégration ;</li><li>la recherche des concurrents du Client et de leurs meilleurs contenus ;</li><li>l'écriture des scripts des @NB@ vidéos ;</li><li>le montage de @NB@ vidéos pour les réseaux sociaux du Client, avec les vidéos envoyées par le Client ;</li><li>la modification de la bio Instagram du Client, avec un appel à prendre rendez-vous par message.</li></ul>";
+var RESSOURCES = "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des formations au format document et des scripts, uniquement sur la vente.</p>";
+// Verrou (Jules, 25/11) : la page n'envoie que des phrases qu'il a validées. Liste posée par verrou.py.
+/* VERROU-DEBUT */var VERROU = ["CONTRAT OQORA", "Contrat de Services d'Acquisition Clients", "Centres Esthétiques", "De [montant]€ à [montant]€/mois", "Oqora", "Jules Couapel · Paris", "Parties contractantes", "Prestataire", "Oqora, SASU au capital de 5 000 € / 6 Passage Alexandrine, 75011 Paris / SIREN 130 092 422 RCS Paris / représentée par Jules Couapel / (ci-après dénommé \"le Prestataire\")", "Client", "[société], [adresse du siège], [gérante] / (ci-après dénommé \"le Client\")", "Article 1 : Objet du contrat", "Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à atteindre un chiffre d'affaires mensuel de [montant]€ en construisant son acquisition de nouveaux clients sur la prestation de [durée] mois.", "Article 2 : Durée de la prestation", "La durée de la prestation est de [durée] mois, à compter de la date de signature de ce contrat.", "Article 3 : Services fournis", "Support 7j/7", "Le Prestataire fournira un support continu 7 jours sur 7.", "Acquisition", "Le Prestataire assurera :", "la création de la stratégie ads (contenus, positionnement, campagnes) ;", "la création des publicités et des créas ;", "le montage des publicités vidéo ;", "la création et la gestion des campagnes publicitaires Meta ;", "la gestion journalière des budgets Meta ;", "l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;", "la création d'une landing page pour récupérer les informations des prospects ;", "la mise en place du formulaire et des outils CRM de gestion des leads ;", "la mise en place d'un outil de suivi des performances en direct.", "Le Client appelle lui-même chaque demande, prend les rendez-vous dans l'agenda du centre et les confirme.", "Article 4 : Modalités de paiement", "Le Client reconnaît et accepte l'obligation légale de procéder au paiement des services fournis par le Prestataire selon les modalités suivantes :", "PAIEMENT EN UNE FOIS", "[montant]€ HT", "Paiement en une fois pour une période de [durée] mois", "Prix exprimés hors taxes, TVA 20 % en sus. Le budget publicitaire n'est pas compris dans ce montant. Il est payé directement par le Client à Meta.", "Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.", "Article 5 : Engagement et suivi des résultats", "5.1 Engagement", "Le Prestataire s'engage à fournir ses services de manière à atteindre les résultats ou objectifs définis conjointement avec le Client.", "5.2 Période d'Évaluation", "Au terme d'une période de [durée, 4 mois au plus] à compter de la date d'effet du présent contrat, le Prestataire et le Client évalueront conjointement les performances réalisées.", "5.3 Bonne Foi et Collaboration", "Le Client reconnaît que le Prestataire n'a pas l'intention de tendre des pièges délibérés ni d'annuler le contrat en cas d'erreur du Client. Les erreurs sont considérées comme des opportunités d'apprentissage et de correction mutuelle. Pour éviter tout malentendu, les Parties conviennent de travailler de bonne foi pour résoudre les erreurs et garantir le succès de la stratégie, dans le respect des termes du contrat initial.", "Article 6 : Confidentialité et propriété intellectuelle", "Le Client s'engage à ne pas partager, vendre ou commercialiser les ressources fournies par le Prestataire dans le cadre de ce contrat. Ces ressources sont des informations privées qui appartiennent à \"Oqora\" et doivent être conservées pour l'usage exclusif du Client.", "Article 7 : Loi applicable et juridiction", "Ce contrat est soumis aux lois françaises et à la juridiction des tribunaux de Paris.", "Article 8 : Onboarding", "8.1 Document d'Onboarding", "Une fois le paiement réalisé, le Client recevra un document d'onboarding de la part du Prestataire.", "8.2 Durée de l'Onboarding", "La phase d'onboarding comprend l'appel d'intégration.", "8.3 Accès à l'Espace Client", "Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera la prestation selon les termes de ce contrat.", "Article 9 : Pénalités de retard", "9.1 Déclenchement des Pénalités", "Toute somme non payée à son échéance donnera lieu au paiement par le Client de pénalités de retard, sans qu'un rappel soit nécessaire.", "9.2 Majoration Fixe pour Frais de Recouvrement", "Toute somme non payée à son échéance entraînera de plein droit le paiement d'une indemnité forfaitaire pour frais de recouvrement d'un montant de 40€, sauf justification de frais supérieurs.", "9.3 Conséquences sur les Services", "En cas de retard de paiement de plus de 10 jours, le Prestataire se réserve le droit de :", "Suspendre l'exécution de ses obligations", "Suspendre ou annuler la fourniture des services", "Résilier le contrat", "Sans que le Client puisse prétendre à une quelconque indemnité.", "9.4 Compensation", "Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.", "Fait à Paris, le [date du jour]", "Jules Couapel", "[gérante]", "PAIEMENT EN 2 FOIS", "2 paiements de [montant]€ HT", "1er paiement à la signature, 2e paiement le [15 jours après], soit [montant]€ HT pour une période de [durée] mois", "PAIEMENT EN 3 FOIS", "3 paiements de [montant]€ HT", "Soit [montant]€ HT pour une période de [durée] mois", "PAIEMENT MENSUEL", "[montant]€ HT par mois", "Paiement mensuel sur une période de [durée] mois", "Le paiement est demandé au début de chaque mois, jamais en fin de mois.", "Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à atteindre un chiffre d'affaires mensuel de [montant]€ en construisant son acquisition de nouveaux clients.", "La prestation commence à la date de signature de ce contrat, pour une durée indéterminée. Il n'y a pas d'engagement de durée : le Client peut arrêter la prestation à tout moment. Tout mois commencé est dû en entier : la prestation continue jusqu'à la fin de ce mois, puis s'arrête.", "Paiement mensuel, sans engagement de durée", "Objectif [montant]€/mois", "Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à construire son acquisition de nouveaux clients.", "Instituts de Beauté", "Professionnels de la Beauté et de l'Esthétisme", "Opératrice Dédiée", "Une opératrice dédiée assurera, à la place du Client :", "l'appel de chaque demande, jusqu'à 4 tentatives sur 7 jours ;", "un double appel à chaque tentative quand la personne ne répond pas ;", "la qualification de chaque demande : la zone à traiter, la motivation, le budget ;", "la prise du rendez-vous dans l'agenda du centre ;", "la confirmation de chaque rendez-vous par téléphone, la veille ;", "l'annulation du rendez-vous dans l'agenda quand la personne annule ;", "le rappel des personnes qui ont annulé ou qui ne sont pas venues, pour replanifier leur rendez-vous.", "Réseaux Sociaux", "la recherche des idées de vidéos, à partir de l'appel d'intégration ;", "la recherche des concurrents du Client et de leurs meilleurs contenus ;", "l'écriture des scripts des [nombre] vidéos ;", "le montage de [nombre] vidéos pour les réseaux sociaux du Client, avec les vidéos envoyées par le Client ;", "la modification de la bio Instagram du Client, avec un appel à prendre rendez-vous par message.", "Programme Complet · [durée] Mois · De [montant]€ à [montant]€/mois", "Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à atteindre un chiffre d'affaires mensuel de [montant]€ en construisant son acquisition de nouveaux clients sur l'accompagnement de [durée] mois.", "Article 2 : Durée de l'accompagnement", "La durée de l'accompagnement est de [durée] mois, à compter de la date de signature de ce contrat.", "Tournage", "Le Prestataire réalisera un tournage dans le centre du Client. Il peut prendre entre 1 et 2 jours entiers, selon les besoins.", "Avant le tournage :", "l'écriture des scripts : 9 accroches face caméra et 21 questions-réponses ;", "l'appel de préparation en visio, pour valider les scripts et le déroulé du tournage avec le Client ;", "le choix de la prestation filmée et de la cliente modèle.", "Pendant le tournage :", "le déplacement dans le centre du Client ;", "le tournage des 9 accroches face caméra, 2 prises chacune ;", "le tournage des 21 questions-réponses ;", "le tournage d'une ou plusieurs prestations (si disponible) ;", "le tournage de plans de l'institut, sans parole ;", "le témoignage de la cliente modèle (si disponible) ;", "la vidéo de présentation pour la landing page ;", "la vidéo « rendez-vous » envoyée après la réservation et la veille.", "Après le tournage :", "le rangement des images dans le Drive du Client ;", "le montage des 8 premières publicités ;", "le montage de 30 vidéos pour les réseaux sociaux du Client.", "Ressources", "Le Prestataire mettra à disposition du Client des formations au format document et des scripts, uniquement sur la vente.", "Le choix de la modalité de paiement devra être clairement précisé par le Client avant le début des services, et une fois le choix effectué, il ne pourra être modifié sans l'accord écrit des deux parties. / Tout retard ou défaut de paiement par le Client entraînera l'application de pénalités conformément à l'Article 9 de ce contrat.", "Le Prestataire s'engage à fournir ses services de manière à atteindre les résultats ou objectifs définis conjointement avec le Client dans l'Annexe 1.", "La phase d'onboarding comprend l'appel d'intégration, l'appel de préparation et le tournage dans le centre du Client. Sa durée dépend de la date du tournage, fixée avec le Client.", "Au bout du 3ème jour (maximum) de la phase d'onboarding, le Client recevra une invitation pour rejoindre l'espace client \"Oqora\", où débutera l'accompagnement selon les termes de ce contrat.", "Article 5 : Garantie de résultat", "5.4 Non-Réalisation des Objectifs", "Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :", "Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu'à ce que le Client soit revenu à l'équilibre, c'est-à-dire qu'il ait regagné ce qu'il a payé à Oqora, sans avoir perdu d'argent (hors budget publicitaire).", "5.5 Modalités de Mise en Œuvre", "Les modalités précises de mise en œuvre de cette garantie, notamment la définition des objectifs, la mesure de la performance et le calcul du retour sur investissement, sont détaillées dans l'Article 3.", "5.6 Conditions et exclusions", "La garantie ne s'applique que si le Client a respecté toutes les conditions suivantes. Si une seule condition n'est pas respectée, la garantie est annulée :", "Le Client a lu et appris tous les documents et formations fournis par le Prestataire", "Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours", "Le Client a rappelé toutes ses demandes chaque jour, sans exception", "Le Client a appelé ses demandes en moins de 10 minutes en moyenne", "Cette garantie ne s'appliquera pas non plus dans les situations où les manquements à la réalisation des objectifs sont imputables à :", "Des circonstances indépendantes de la volonté du Prestataire", "Des actes du Client", "Des catastrophes naturelles", "Des actes de tiers", "Des décisions des plateformes publicitaires et des réseaux sociaux, notamment Meta (restriction, suspension ou blocage d'un compte, refus d'une publicité, changement de leurs règles ou de leur fonctionnement)", "Toute autre circonstance échappant au contrôle raisonnable du Prestataire", "Programme Complet · De [montant]€ à [montant]€/mois", "L'accompagnement commence à la date de signature de ce contrat, pour une durée indéterminée. Il n'y a pas d'engagement de durée : le Client peut arrêter l'accompagnement à tout moment. Tout mois commencé est dû en entier : l'accompagnement continue jusqu'à la fin de ce mois, puis s'arrête.", "Programme Complet · [durée] Mois · Objectif [montant]€/mois", "Programme Complet · Objectif [montant]€/mois", "Programme Complet · [durée] Mois", "Programme Complet"];/* VERROU-FIN */
+function normPhrase(t) {
+  t = t.replace(/[\u202f\u00a0]/g, " ").replace(/\{\{.*?\}\}/g, "").replace(/2e paiement le \d+\S* \S+ \d{4}/, "2e paiement le [15 jours après]");
+  if (t.indexOf("au capital de") < 0) t = t.replace(/\d[\d ]*(?:,\d+)? ?€/g, function (m) { return /^40 ?€/.test(m) ? m : "[montant]€"; });
+  t = t.replace(/\b\d+ (mois|Mois)\b/g, "[durée] $1");
+  if (t.indexOf("évalueront") >= 0) t = t.replace(/(un|deux|trois|quatre) \(\d\) mois/, "[durée, 4 mois au plus]");
+  t = t.replace(/(des scripts des|montage de) \d+ (vidéos(?: ;|\.|$)|vidéos pour les réseaux sociaux du Client, avec)/, "$1 [nombre] $2");
+  return t.replace(/\s+/g, " ").replace(/^[ /]+|[ /]+$/g, "");
+}
+// Toutes les phrases du contrat affiché, noms et montants masqués : [article, titre, phrase]
+function phrasesContrat() {
+  rendre({ date: "[date du jour]", signature: true, masque: true });
+  var art = "Couverture", h3 = "", L = [];
+  (function w(n) { Array.prototype.forEach.call(n.children, function (e) {
+    var c = e.className || "";
+    if (e.tagName === "H2") { art = normPhrase(e.textContent); h3 = ""; L.push([art, "", art]); return; }
+    if (e.tagName === "H3") { h3 = normPhrase(e.textContent); L.push([art, h3, h3]); return; }
+    if (c === "sign") { art = "Signature"; h3 = ""; }
+    if (["P", "LI", "TD", "H1"].indexOf(e.tagName) >= 0 || /sub|theme|prog|org|who/.test(c) || !e.children.length || (e.tagName === "DIV" && !e.querySelector("div,p,ul,table"))) {
+      var t = normPhrase(e.innerHTML.replace(/<br>/g, " / ").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&nbsp;/g, " "));
+      var sg = /^Fait /.test(t); if (t) L.push([sg ? "Signature" : art, sg ? "" : h3, t]); return;
+    }
+    w(e);
+  }); })($("contrat"));
+  rendre();
+  return L;
+}
+function phrasesRefusees() {
+  if (!VERROU) return [];
+  return phrasesContrat().map(function (x) { return x[2]; }).filter(function (t) { return VERROU.indexOf(t) < 0; });
+}
 function rendre(opts) {
   opts = opts || {};
   var o = val("offre"), f = val("formule"), d = duree();
@@ -358,6 +399,7 @@ function rendre(opts) {
   var evalMois = Math.min(4, d);
   var gerante = [$("prenom").value.trim(), $("nom").value.trim()].filter(Boolean).join(" ");
   var centre = $("centre").value.trim(), adresse = $("adresse").value.trim();
+  if (opts.masque) { gerante = "[gérante]"; centre = "[société]"; adresse = "[adresse du siège]"; }
   var prix = $("prix").value, objectif = $("objectif").value;
   var dateTxt = opts.date || "___ / ___ / ______";
   var caAct = $("caActuel").value;
@@ -365,22 +407,22 @@ function rendre(opts) {
   var client = [champ(centre, "[Société]"), adresse ? esc(adresse) : "", champ(gerante, "[Nom de la gérante]")].filter(Boolean).join(", ");
 
   var setter = o === "2"
-    ? "<h3>Opératrice Dédiée</h3><p><b>Une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme.</b></p>"
+    ? "<h3>Opératrice Dédiée</h3><p>Une opératrice dédiée assurera, à la place du Client :</p><ul><li>l'appel de chaque demande, jusqu'à 4 tentatives sur 7 jours ;</li><li>un double appel à chaque tentative quand la personne ne répond pas ;</li><li>la qualification de chaque demande : la zone à traiter, la motivation, le budget ;</li><li>la prise du rendez-vous dans l'agenda du centre ;</li><li>la confirmation de chaque rendez-vous par téléphone, la veille ;</li><li>l'annulation du rendez-vous dans l'agenda quand la personne annule ;</li><li>le rappel des personnes qui ont annulé ou qui ne sont pas venues, pour replanifier leur rendez-vous.</li></ul>"
     : "";
   var items = ITEMS_ACQUISITION.slice();
   // Pub + Insta : la ligne du tournage d'origine (« le montage des publicités vidéo et de 30 vidéos… »), avec 10 vidéos
-  if (!complete) items.splice(2, 0, "le montage des publicités vidéo" + (insta ? " et de 10 vidéos pour les réseaux sociaux du Client" : "") + " ;"); // sans tournage, le montage des pubs reste (contrat du 20/11)
+  if (!complete) items.splice(2, 0, "le montage des publicités vidéo ;"); // sans tournage, le montage des pubs reste (contrat du 20/11)
   var acquisition = "<h3>Acquisition</h3><p>Le Prestataire assurera :</p><ul>" + items.map(function (i) { return "<li>" + i + "</li>"; }).join("") + "</ul>" +
     (o === "1" && !complete ? "<p>Le Client appelle lui-même chaque demande, prend les rendez-vous dans l'agenda du centre et les confirme.</p>" : "");
-  var videos = complete ? TOURNAGE_COMPLET : "";
+  var videos = complete ? TOURNAGE_COMPLET : insta ? RESEAUX.replace(/@NB@/g, champ($("nbVideos").value.trim(), "[nombre]")) : "";
   var ressources = complete ? RESSOURCES : "";
   var avecObjectif = val("avecObjectif") === "oui";
-  var condRappel = o === "1" ? "<li>Le Client a rappelé toutes ses demandes chaque jour, sans exception</li>" : "";
+  var condRappel = o === "1" ? "<li>Le Client a rappelé toutes ses demandes chaque jour, sans exception</li>" + (complete ? "<li>Le Client a appelé ses demandes en moins de 10 minutes en moyenne</li>" : "") : "";
 
   $("contrat").innerHTML =
     '<div class="cover"><h1>CONTRAT OQORA</h1>' +
     '<div class="sub">Contrat de Services d\'Acquisition Clients</div>' +
-    '<div class="theme">Centres Esthétiques</div>' +
+    '<div class="theme">' + esc(val("metier")) + '</div>' +
     (function () { var l = [complete ? "Programme Complet" : "", complete && !sansEngagement() ? d + " Mois" : "", avecObjectif ? couverture : ""].filter(Boolean).join(" · "); return l ? '<div class="prog">' + l + "</div>" : ""; })() +
     '<div class="org">Oqora</div><div class="who">Jules Couapel · Paris</div></div>' +
 
@@ -391,8 +433,8 @@ function rendre(opts) {
     "<h2>Article 1 : Objet du contrat</h2>" +
     (avecObjectif
       ? "<p>Le Prestataire s'engage à fournir des services de consultation et d'acquisition pour aider le Client à atteindre un chiffre d'affaires mensuel de " +
-        champ(objectif ? euros(objectif) : "", "[__] €") + ' en construisant son "écosystème d\'acquisition"' + (sansEngagement() ? "" : " sur " + (complete ? "l'accompagnement" : "la prestation") + " de " + d + " mois") + ".</p>"
-      : '<p>Le Prestataire s\'engage à fournir des services de consultation et d\'acquisition pour aider le Client à construire son "écosystème d\'acquisition".</p>') +
+        champ(objectif ? euros(objectif) : "", "[__] €") + ' en construisant son acquisition de nouveaux clients' + (sansEngagement() ? "" : " sur " + (complete ? "l'accompagnement" : "la prestation") + " de " + d + " mois") + ".</p>"
+      : '<p>Le Prestataire s\'engage à fournir des services de consultation et d\'acquisition pour aider le Client à construire son acquisition de nouveaux clients.</p>') +
 
     "<h2>Article 2 : Durée " + (complete ? "de l'accompagnement" : "de la prestation") + "</h2>" +
     "<p>" + texteArticle2(d) + "</p>" +
@@ -415,7 +457,7 @@ function rendre(opts) {
     "<h3>5.2 Période d'Évaluation</h3><p>Au terme d'une période de " + LETTRES[evalMois] + " (" + evalMois + ") mois à compter de la date d'effet du présent contrat, le Prestataire et le Client évalueront conjointement les performances réalisées.</p>" +
     "<h3>5.3 Bonne Foi et Collaboration</h3><p>Le Client reconnaît que le Prestataire n'a pas l'intention de tendre des pièges délibérés ni d'annuler le contrat en cas d'erreur du Client. Les erreurs sont considérées comme des opportunités d'apprentissage et de correction mutuelle. Pour éviter tout malentendu, les Parties conviennent de travailler de bonne foi pour résoudre les erreurs et garantir le succès de la stratégie, dans le respect des termes du contrat initial.</p>" +
     (avecGarantie ? "<h3>5.4 Non-Réalisation des Objectifs</h3><p>Si, à l'issue de cette période d'évaluation, il est établi que les objectifs ou résultats n'ont pas été atteints :</p>" +
-    '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que les performances réalisées par le Prestataire permettent d\'obtenir un retour sur investissement équivalent à ' + texteGarantie(d) + ' l\'investissement initial du Client dans Oqora (hors budget publicitaire)</p>' +
+    '<p class="box">Les prestations du Prestataire deviendront gratuites pour le Client (hors budget publicitaire) jusqu\'à ce que le Client soit revenu à l\'équilibre, c\'est-à-dire qu\'il ait regagné ce qu\'il a payé à Oqora, sans avoir perdu d\'argent (hors budget publicitaire).</p>' +
     "<h3>5.5 Modalités de Mise en Œuvre</h3><p>Les modalités précises de mise en œuvre de cette garantie, notamment la définition des objectifs, la mesure de la performance et le calcul du retour sur investissement, sont détaillées dans l'Article 3.</p>" +
     "<h3>5.6 Conditions et exclusions</h3><p>La garantie ne s'applique que si le Client a respecté toutes les conditions suivantes. Si une seule condition n'est pas respectée, la garantie est annulée :</p>" +
     "<ul>" + (complete ? "<li>Le Client a lu et appris tous les documents et formations fournis par le Prestataire</li>" : "") + "<li>Le Client a réalisé toutes les tâches qui lui sont demandées dans l'espace client Oqora, chacune dans un délai maximum de 7 jours</li>" + condRappel + "</ul>" +
@@ -436,7 +478,7 @@ function rendre(opts) {
     "<ul><li>Suspendre l'exécution de ses obligations</li><li>Suspendre ou annuler la fourniture des services</li><li>Résilier le contrat</li></ul><p>Sans que le Client puisse prétendre à une quelconque indemnité.</p>" +
     "<h3>9.4 Compensation</h3><p>Le Prestataire se réserve également le droit de compenser toute somme qui lui serait due par le Client, avec toute somme qu'il pourrait lui devoir, quel qu'en soit le motif.</p>" +
 
-    '<p style="text-align:center;margin-top:36pt">Fait en deux exemplaires originaux<br><br>à Paris, le ' + dateTxt + "</p>" +
+    '<p style="text-align:center;margin-top:36pt">Fait à Paris, le ' + dateTxt + "</p>" +
     '<div class="sign"><div>Pour le Prestataire<br><b>Jules Couapel</b><br>Oqora<br><br>Signature :<br>' + (opts.signature ? '<div class="zone-sign"></div>' : "") + '_______________________</div>' +
     "<div>Pour le Client<br><b>" + champ(gerante, "[Nom]") + "</b><br>" + (centre ? esc(centre) : "") + "<br><br>Signature :<br>" + (opts.signature ? '<div class="zone-sign"><span class="balise">' + BALISE + "</span></div>" : "") + "_______________________</div></div>";
 }
@@ -588,6 +630,7 @@ function manquants() {
   if (!$("centre").value.trim()) m.push("société");
   if (!$("prenom").value.trim() || !$("nom").value.trim()) m.push("prénom et nom de la gérante");
   if (!$("prix").value) m.push("prix");
+  if (val("formule") === "Pub + Insta" && !(/^\d+$/.test($("nbVideos").value) && parseInt($("nbVideos").value, 10) >= 2)) m.push("nombre de vidéos (2 ou plus)");
   if (val("avecObjectif") === "oui" && !$("objectif").value) m.push("objectif de CA");
   return m;
 }
@@ -603,6 +646,7 @@ function toutMettreAJour() {
   $("objectifTitre").textContent = avecObj ? "CA actuel et objectif" : "CA actuel";
   $("objectifAide").textContent = avecObj ? "Objectif calculé depuis son CA actuel. Modifiable." : "Sert à choisir la taille du centre.";
   
+  $("nbVideosBloc").hidden = val("formule") !== "Pub + Insta"; $("nbvPetit").textContent = ($("nbVideos").value || "?") + " vidéos";
   majPaiement(); rendre(); majFacture();
   var b = blocage(); $("signer").disabled = !!b; if (b) etatSigner(b, "erreur"); else if ($("etatSigner").className.indexOf("erreur") > -1) etatSigner("");
 }
@@ -611,7 +655,7 @@ function toutMettreAJour() {
 function cocher(nom, v) { document.querySelector('input[name="' + nom + '"][value="' + v + '"]').checked = true; }
 function departFormule() {
   var c = estComplete();
-  cocher("garantie", c ? "avec" : "sans"); cocher("duree", c ? "3" : "mensuel"); cocher("paiement", "mois"); cocher("support", c ? "oui" : "non");
+  cocher("garantie", "sans"); cocher("duree", c ? "3" : "mensuel"); cocher("paiement", "mois"); cocher("support", c ? "oui" : "non");
 }
 document.querySelectorAll('input[name="formule"]').forEach(function (e) { e.addEventListener("change", departFormule); });
 document.querySelectorAll('input[name="offre"], input[name="taille"], input[name="formule"]').forEach(function (e) { e.addEventListener("change", function () { majPrix(); toutMettreAJour(); }); });
@@ -630,6 +674,8 @@ function nomFichier() {
 $("pdf").addEventListener("click", async function () {
   var m = manquants();
   if (m.length) { etat("Il manque : " + m.join(", ") + ".", "erreur"); return; }
+  var refus = phrasesRefusees();
+  if (refus.length) { etat("Bloqué : tu n'as pas encore validé cette phrase : « " + refus[0] + " »", "erreur"); return; }
   if (typeof html2pdf === "undefined") { etat("Le module PDF ne s'est pas chargé. Vérifie la connexion puis recharge la page.", "erreur"); return; }
   var btn = this; btn.disabled = true; etat("Création du PDF…");
   rendre();
@@ -694,7 +740,7 @@ function donneesContrat() {
     ca_actuel: $("caActuel").value ? euros($("caActuel").value) : "", objectif_ca: $("objectif").value ? euros($("objectif").value) : "",
     prix_mensuel: $("prix").value ? euros($("prix").value) : "",
     paiement_titre: t.titre, paiement_montant: t.montant, paiement_detail: t.detail,
-    operatrice: o === "2" ? "Opératrice Dédiée : une opératrice dédiée qui appelle chaque demande du Client, prend les rendez-vous dans l'agenda du centre et les confirme." : "",
+    operatrice: o === "2" ? "Opératrice Dédiée" : "",
     condition_offre_1: o === "1" ? "Offre 1 : le Client a rappelé toutes ses demandes chaque jour, sans exception." : "",
     periode_evaluation: LETTRES[evalMois] + " (" + evalMois + ")",
     article_2: texteArticle2(d), garantie: texteGarantie(d),
@@ -714,6 +760,8 @@ $("signer").addEventListener("click", async function () {
   var m = manquants();
   if (!$("adresse").value.trim()) m.push("adresse du siège");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($("email").value.trim())) m.push("e-mail de la gérante");
+  var refus = phrasesRefusees();
+  if (refus.length) { etatSigner("Envoi bloqué : tu n'as pas encore validé cette phrase : « " + refus[0] + " »", "erreur"); return; }
   if (m.length) { etatSigner("Il manque : " + m.join(", ") + ".", "erreur"); return; }
   var btn = this; btn.disabled = true; etatSigner("Envoi en cours…");
   try {
