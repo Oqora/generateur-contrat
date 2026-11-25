@@ -148,7 +148,7 @@ input:focus-visible, textarea:focus-visible, .choix input:focus-visible + span, 
 
     <div class="bloc-titre">Les options</div>
     <div class="q" id="blocTournage" hidden><div class="lab">Tournage dans son centre</div>
-      <div class="choix"><label><input type="radio" name="tournage" value="oui"><span>On vient filmer<small>+ 300 € par tournage</small></span></label><label><input type="radio" name="tournage" value="non" checked><span>Avec ses rushs</span></label></div></div>
+      <div class="choix"><label><input type="radio" name="tournage" value="oui"><span>On vient filmer<small>+ 300 €, une fois</small></span></label><label><input type="radio" name="tournage" value="non" checked><span>Avec ses vidéos</span></label></div></div>
     <div class="q"><div class="lab">Objectif de CA dans le contrat</div>
       <div class="choix"><label><input type="radio" name="avecObjectif" value="oui"><span>Avec objectif</span></label><label><input type="radio" name="avecObjectif" value="non" checked><span>Sans objectif</span></label></div></div>
     <div class="q"><div class="lab">Support 7j/7</div>
@@ -356,9 +356,9 @@ var DEBUT_MOIS = "Le paiement est demandé au début de chaque mois, jamais en f
 var SASU = "Oqora, SASU au capital de 5 000 €<br>6 Passage Alexandrine, 75011 Paris<br>SIREN 130 092 422 RCS Paris<br>représentée par Jules Couapel";
 var ITEMS_ACQUISITION = ["la création de la stratégie ads (contenus, positionnement, campagnes) ;", "la création des publicités et des créas ;", "la création et la gestion des campagnes publicitaires Meta ;", "la gestion journalière des budgets Meta ;", "l'ajustement continu du ciblage pour optimiser la rentabilité et la qualité des leads ;", "la création d'une landing page pour récupérer les informations des prospects ;", "la mise en place du formulaire et des outils CRM de gestion des leads ;", "la mise en place d'un outil de suivi des performances en direct."];
 var TOURNAGE_COMPLET = "<h3>Tournage</h3><p>Le Prestataire réalisera un tournage dans le centre du Client, préparé en amont avec lui :</p><ul><li>la recherche des idées de vidéos et l'écriture des accroches et des questions-réponses, à partir de l'appel d'intégration ;</li><li>le tournage des accroches face caméra, des questions-réponses, d'une prestation, des plans de l'institut et du témoignage d'une cliente ;</li><li>le tournage des vidéos du parcours client : la vidéo de présentation de la landing page et la vidéo envoyée avant chaque rendez-vous ;</li><li>le montage des publicités vidéo et de 30 vidéos pour les réseaux sociaux du Client.</li></ul>";
-// Proposé, avec les mots de la grille : « 10 vidéos tous les 4 mois », « montées avec vos rushs », « supplément de 300 € par tournage », « 5 vidéos avec nos images et 5 avec vos rushs »
-var VIDEOS_RUSHS = "<h3>Vidéos</h3><p>Le Prestataire montera 10 vidéos pour l'Instagram du Client tous les 4 mois, avec les rushs du Client.</p>";
-var VIDEOS_TOURNAGE = "<h3>Vidéos</h3><p>Le Prestataire viendra filmer dans le centre du Client, avec un supplément de 300 € HT par tournage. Il montera 10 vidéos pour l'Instagram du Client tous les 4 mois : 5 avec les images du tournage et 5 avec les rushs du Client.</p>";
+// Proposé. Jules, 25/11 : « enlève tout ce qui est écrit sur tous les 4 mois […] C'est une fois » : 10 vidéos au total.
+var VIDEOS_RUSHS = "<h3>Vidéos</h3><p>Le Prestataire montera 10 vidéos au total pour l'Instagram du Client, avec les vidéos que le Client lui envoie.</p>";
+var VIDEOS_TOURNAGE = "<h3>Vidéos</h3><p>Le Prestataire viendra filmer une fois dans le centre du Client, avec un supplément de 300 € HT. Il montera 10 vidéos au total pour l'Instagram du Client : 5 avec les images du tournage et 5 avec les vidéos que le Client lui envoie.</p>";
 var RESSOURCES = "<h3>Ressources</h3><p>Le Prestataire mettra à disposition du Client des ressources telles que des formations au format document (offre, acquisition, vente, création de contenu) et des scripts.</p>";
 function rendre(opts) {
   opts = opts || {};
